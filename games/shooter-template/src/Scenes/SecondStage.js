@@ -123,9 +123,11 @@ export default class SecondStage extends Phaser.Scene {
     // Огонь на тач-устройствах — ТОЛЬКО по кнопке «ОГОНЬ» (touchControls.isFiring()).
     this.mouseFireDown = false;
     this.mouseFireAt = 0;
-    const isTouchDevice = !!(this.sys.game.device
-      && this.sys.game.device.input
-      && this.sys.game.device.input.touch);
+    const isTouchDevice = !!window.__TOUCH_MODE__
+      || !!(this.sys.game.device
+        && this.sys.game.device.input
+        && (this.sys.game.device.input.multiTouch
+          || this.sys.game.device.input.touch));
     this.input.on('pointerdown', (p) => {
       if (isTouchDevice) return;
       if (p.rightButtonDown() || p.leftButtonDown()) {
