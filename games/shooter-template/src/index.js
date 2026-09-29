@@ -20,6 +20,18 @@ window.addEventListener('keydown', (e) => {
   }
 }, { passive: false });
 
+// Страховка для ПРОБЕЛА: если фокус документа потерян (офлайн-файл открыт
+// двойным кликом, пользователь кликнул мимо canvas и т.п.) — плагин Phaser
+// Keyboard может перестать получать события и isDown по пробелу «залипает»
+// в ложном состоянии. Глобальный keydown выставляет флаг резервной
+// клавиатуры напрямую; keyup/blur сбрасывают его в сценах.
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar') {
+    const st = window.__GAME_KEYS__;
+    if (st) st.space = true;
+  }
+});
+
 // Правая кнопка мыши стреляет — контекстное меню браузера (и «кружок»-эффект) убираем.
 const killCtxMenu = (e) => { e.preventDefault(); return false; };
 document.addEventListener('contextmenu', killCtxMenu);
