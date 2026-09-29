@@ -25,15 +25,39 @@ function loadImage(bytes, mime) {
   });
 }
 
-function decodeAudio(bytes) {
-  const Ctx = window.OfflineAudioContext
-    || window.webkitOfflineAudioContext
-    || window.AudioContext
-    || window.webkitAudioContext;
-  const ctx = new Ctx(2, 44100, 44100);
+// Единый «живой» контекст для декодирования и воспроизведения всех звуков.
+// Раньше каждый WAV декодировался в отдельном OfflineAudioContext, который
+// тут же умирал — такие «сиротские» AudioBuffer при play() подвешивали
+// вкладку (игрок видел: выстрел -> зависание). Теперь один контекст на игру.
+let sharedCtx = null;
+function getSharedCtx() {
+  if (sharedCtx) return sharedCtx;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  try {
+    sharedCtx = new AC();
+  } catch (e) {
+    try { sharedCtx = new AC({ latencyHint: 'interactive' }); } catch (e2) { sharedCtx = null; }
+  }
+  return sharedCtx;
+}
+
+function decodeAudioLive(bytes) {
+  const ctx = getSharedCtx();
+  if (!ctx) return Promise.reject(new Error('no AudioContext'));
   // decodeAudioData требует не-detached ArrayBuffer
   const copy = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
-  return ctx.decodeAudioData(copy);
+  return new Promise((resolve, reject) => {
+    try {
+      const p = ctx.decodeAudioData(copy, resolve, reject);
+      // старые браузеры возвращают promise и вызывают коллбэки тоже — защита
+      if (p && typeof p.then === 'function') p.then(resolve, reject);
+    } catch (e) { reject(e); }
+  });
+}
+
+function decodeAudio(bytes) {
+  return decodeAudioLive(bytes);
 }
 
 // Генерируем простой тон на случай, если WAV не декодировался —
@@ -78,8 +102,13 @@ export default {
       }
 
       if (e.type === 'audio') {
+        // Декодируем в ОБЫЧном AudioContext, а не в OfflineAudioContext:
+        // буфер должен принадлежать живому (не closed) контексту — иначе
+        // при воспроизведении часть браузеров подвешивает вкладку.
+        // Контекст после декодирования не закрываем и переиспользуем для
+        // всех звуков (его же читает window.SFX).
         try {
-          out[key] = { type: 'audio', buffer: await decodeAudio(bytes) };
+          out[key] = { type: 'audio', buffer: await decodeAudioLive(bytes) };
         } catch (err) {
           console.warn('Audio decode failed:', e.file, err);
           const fb = makeFallbackBuffer(0.25, key === 'sndLaser' ? 880 : 180);
@@ -172,30 +201,165 @@ window.Speech = (() => {
 // ключа нет в аудио-кэше (или AudioManager недоступен). Здесь всё обёрнуто
 // в try/catch, так что звук — строго «по желанию», а не причина краша.
 window.SFX = (() => {
-  let unlocked = false;
-  function ensureUnlock(game) {
-    if (unlocked || !game || !game.sound) return;
+  // Все звуки игры идут через ОДИН собственный AudioContext, а не через
+  // звуковой движок Phaser. Раньше каждый выстрел создавал новый
+  // WebAudioSound в глобальном менеджере Phaser — на слабых устройствах
+  // это подвешивало вкладку («игра виснет при выстреле, должен быть звук»).
+  // Теперь: один контекст, переиспользуемые буферы, лимит одновременно
+  // играющих звуков, троттлинг повторов и полная защита try/catch —
+  // звук физически не может уронить игру.
+  let ctx = null;         // наш AudioContext
+  let phaserCtx = null;   // контекст Phaser (буферы декодированы в нём)
+  let phaserCtxChecked = false;
+  let lastResumeAt = 0;
+  const buffers = {};     // key -> AudioBuffer (из кэша Phaser, читается один раз)
+  const lastPlayAt = {};  // key -> время последнего запуска (троттлинг)
+  const playing = [];     // активные BufferSource (для лимита)
+  const MAX_SIMULTANEOUS = 6;
+  const MIN_GAP_MS = 70;  // не запускать один и тот же звук чаще
+
+  function getCtx() {
+    if (ctx) return ctx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
     try {
-      const unlock = () => {
-        try {
-          if (game.sound.unlock) game.sound.unlock();
-        } catch (e) { /* ignore */ }
-        unlocked = true;
-        document.removeEventListener('pointerdown', unlock);
-        document.removeEventListener('keydown', unlock);
-      };
-      document.addEventListener('pointerdown', unlock);
-      document.addEventListener('keydown', unlock);
+      ctx = new AC({ latencyHint: 'interactive' });
+    } catch (e) {
+      try { ctx = new AC(); } catch (e2) { ctx = null; }
+    }
+    return ctx;
+  }
+
+  function resumeSoon() {
+    const c = getCtx();
+    if (!c) return;
+    const now = (window.performance && performance.now) ? performance.now() : Date.now();
+    if (now - lastResumeAt < 400) return; // не дёргать браузер слишком часто
+    lastResumeAt = now;
+    try {
+      if (c.state === 'suspended' && c.resume) {
+        const p = c.resume();
+        if (p && p.catch) p.catch(() => {});
+      }
     } catch (e) { /* ignore */ }
   }
+
+  function takeBuffer(key) {
+    // берём готовый AudioBuffer из кэша Phaser (он лежит там как есть)
+    if (buffers[key]) return buffers[key];
+    try {
+      const b = phaserCacheGet(key);
+      if (b && typeof b.duration === 'number') {
+        buffers[key] = b;
+        return b;
+      }
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+
+  function phaserCacheGet(key) {
+    // читаем напрямую из кэша — без вызовов методов Phaser, чтобы ничего
+    // не могло бросить исключение наружу
+    try {
+      const g = window.game;
+      if (!g || !g.cache || !g.cache.audio) return null;
+      if (g.cache.audio.exists && !g.cache.audio.exists(key)) return null;
+      const v = g.cache.audio.get(key);
+      if (v && v.data && typeof v.data.duration === 'number') return v.data;
+      if (v && typeof v.duration === 'number') return v;
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+
+  function ensurePhaserCtx() {
+    if (phaserCtxChecked) return;
+    phaserCtxChecked = true;
+    try {
+      const g = window.game;
+      if (g && g.sound && g.sound.context) phaserCtx = g.sound.context;
+    } catch (e) { /* ignore */ }
+  }
+
+  function prunePlaying() {
+    const now = (window.performance && performance.now) ? performance.now() : Date.now();
+    for (let i = playing.length - 1; i >= 0; i--) {
+      const p = playing[i];
+      if (p.endAt <= now) playing.splice(i, 1);
+    }
+    while (playing.length > MAX_SIMULTANEOUS) {
+      const oldest = playing.shift();
+      try { if (oldest.node.stop) oldest.node.stop(0); } catch (e) { /* ignore */ }
+    }
+  }
+
+  // «разблокировка» аудио первым жестом пользователя (требование браузеров)
+  function armUnlock() {
+    const unlock = () => {
+      try {
+        const c = getCtx();
+        if (c && c.state === 'suspended' && c.resume) {
+          const p = c.resume();
+          if (p && p.catch) p.catch(() => {});
+        }
+      } catch (e) { /* ignore */ }
+      try {
+        if (phaserCtx && phaserCtx.state === 'suspended' && phaserCtx.resume) {
+          const p2 = phaserCtx.resume();
+          if (p2 && p2.catch) p2.catch(() => {});
+        }
+      } catch (e) { /* ignore */ }
+      // прогрев: один тихий буфер за пределами слышимости — многие браузеры
+      // считают канал «разогнанным» только после реального play()
+      try {
+        const c = getCtx();
+        if (c && Object.keys(buffers).length) {
+          const k = Object.keys(buffers)[0];
+          const src = c.createBufferSource();
+          src.buffer = buffers[k];
+          const gain = c.createGain();
+          gain.gain.value = 0.0001;
+          src.connect(gain);
+          gain.connect(c.destination);
+          if (src.start) src.start(0);
+        }
+      } catch (e) { /* ignore */ }
+      document.removeEventListener('pointerdown', unlock, true);
+      document.removeEventListener('keydown', unlock, true);
+    };
+    document.addEventListener('pointerdown', unlock, true);
+    document.addEventListener('keydown', unlock, true);
+  }
+  try { armUnlock(); } catch (e) { /* ignore */ }
+
   return {
-    ensureUnlock,
+    ensureUnlock() { resumeSoon(); },
     play(game, key, volume) {
       try {
-        if (!game || !game.sound || !game.sound.add) return; // NoAudio manager
-        if (!game.cache.audio.exists(key)) return;
-        const s = game.sound.add(key, { volume: volume === undefined ? 0.5 : volume });
-        s.play();
+        ensurePhaserCtx();
+        const buf = takeBuffer(key);
+        if (!buf) return; // звука просто нет — молча пропускаем
+        const c = getCtx();
+        if (!c) return;
+        const now = (window.performance && performance.now) ? performance.now() : Date.now();
+        if (lastPlayAt[key] && now - lastPlayAt[key] < MIN_GAP_MS) return;
+        lastPlayAt[key] = now;
+        if (c.state !== 'running') { resumeSoon(); return; }
+        prunePlaying();
+        const src = c.createBufferSource();
+        src.buffer = buf;
+        const gain = c.createGain();
+        gain.gain.value = volume === undefined ? 0.5 : volume;
+        src.connect(gain);
+        gain.connect(c.destination);
+        const endAt = now + buf.duration * 1000 + 30;
+        playing.push({ node: src, endAt });
+        src.onended = () => {
+          for (let i = playing.length - 1; i >= 0; i--) {
+            if (playing[i].node === src) playing.splice(i, 1);
+          }
+          try { src.disconnect(); gain.disconnect(); } catch (e) { /* ignore */ }
+        };
+        if (src.start) src.start(0); else src.noteOn(0);
       } catch (e) {
         console.warn('SFX play failed:', key, e);
       }

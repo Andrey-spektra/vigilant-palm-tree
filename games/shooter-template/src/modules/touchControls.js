@@ -25,12 +25,19 @@ export default class TouchControls {
     this.fireX = w - 130;
     this.fireY = h - 130;
 
-    // зона джойстика — вся левая половина экрана (но сам джойстик закреплён)
-    this.joystickZone = scene.add.zone(0, 0, w * 0.5, h).setOrigin(0, 0);
+    // Зона джойстика — ТОЛЬКО область вокруг закреплённого джойстика.
+    // Раньше это была вся левая половина экрана: на десктопе клик мышью
+    // «хватался» джойстиком, ручка уезжала к курсору и getMove() возвращал
+    // ненулевое смещение. В update() джойстик имеет приоритет над клавиатурой,
+    // поэтому WASD/стрелки переставали работать — управление seemed полностью
+    // отсутствующим. Теперь мышь на зону не попадает, клавиатура живёт своей
+    // жизнью, а на телефоне попасть по крупному квадрату 260x260 легко.
+    const zoneSize = 260;
+    this.joystickZone = scene.add.zone(this.joyHomeX, this.joyHomeY, zoneSize, zoneSize);
     this.joystickZone.setInteractive();
 
-    // зона кнопки огня — правая половина снизу
-    this.fireZone = scene.add.zone(w * 0.75, h * 0.8, w * 0.5, h * 0.4).setOrigin(0.5);
+    // зона кнопки огня — только район самой кнопки
+    this.fireZone = scene.add.zone(this.fireX, this.fireY, 170, 170);
     this.fireZone.setInteractive();
 
     // визуал джойстика: видим всегда (на тач), глубина выше игры, не зависит от камеры
