@@ -64720,12 +64720,15 @@ class TouchControls {
 
     this.isTouch = !!(scene.sys.game.device && scene.sys.game.device.input && scene.sys.game.device.input.touch);
 
-    // На десктопе прячем визуал, зоны оставляем (не мешают)
+    // На десктопе прячем визуал и полностью отключаем тач-зоны: интерактивные
+    // зоны перехватывали события указателя и могли «съедать» фокус/движение.
     if (!this.isTouch) {
       this.base.setVisible(false);
       this.thumb.setVisible(false);
       this.fireBtn.setVisible(false);
       this.fireLabel.setVisible(false);
+      this.joystickZone.disableInteractive();
+      this.fireZone.disableInteractive();
     }
 
     // указатель джойстика: привязываемся к pointerId, чтобы второй палец (огонь)
@@ -64799,11 +64802,14 @@ class TouchControls {
   }
 
   // возвращает направление движения: {x, y} в диапазоне -1..1
+  // на десктопе джойстик отключён — всегда ноль, чтобы не перекрывать клавиатуру
   getMove() {
+    if (!this.isTouch) return { x: 0, y: 0 };
     return { x: this.moveX, y: this.moveY };
   }
 
   isFiring() {
+    if (!this.isTouch) return false;
     return this.firing;
   }
 
@@ -204782,6 +204788,20 @@ GameObjectCreator.register('sprite3D', function (config, addToScene)
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
+  input: {
+    keyboard: {
+      // Phaser сам вешает keydown-слушатель с preventDefault на эти клавиши —
+      // стрелки и пробел не прокручивают страницу даже когда фокус на canvas.
+      killPageScrollOnKeyboardKeys: true,
+      capture: [
+        Phaser.Input.Keyboard.KeyCodes.W, Phaser.Input.Keyboard.KeyCodes.A,
+        Phaser.Input.Keyboard.KeyCodes.S, Phaser.Input.Keyboard.KeyCodes.D,
+        Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN,
+        Phaser.Input.Keyboard.KeyCodes.LEFT, Phaser.Input.Keyboard.KeyCodes.RIGHT,
+        Phaser.Input.Keyboard.KeyCodes.SPACE,
+      ],
+    },
+  },
   physics: {
     default: 'arcade',
     arcade: {
@@ -205303,6 +205323,27 @@ class SceneMain extends Phaser.Scene {
     this.keyA = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.LEFT]);
     this.keyD = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.D, Phaser.Input.Keyboard.KeyCodes.RIGHT]);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+    // Резервный клавиатурный обработчик: если плагин Phaser Keyboard по какой-то
+    // причине не получит события (фокус окна, особенности офлайн-файла),
+    // дублируем состояния тех же клавиш через нативные слушатели.
+    if (!window.__GAME_KEY_FALLBACK__) {
+      window.__GAME_KEY_FALLBACK__ = true;
+      const map = {
+        KeyW: 'w', ArrowUp: 'w', KeyS: 's', ArrowDown: 's',
+        KeyA: 'a', ArrowLeft: 'a', KeyD: 'd', ArrowRight: 'd', Space: 'space',
+      };
+      const st = window.__GAME_KEYS__ = window.__GAME_KEYS__ || { w: 0, s: 0, a: 0, d: 0, space: 0 };
+      window.addEventListener('keydown', (e) => {
+        const k = map[e.code];
+        if (k) st[k] += 1;
+      });
+      window.addEventListener('keyup', (e) => {
+        const k = map[e.code];
+        if (k) st[k] = Math.max(0, st[k] - 1);
+      });
+      window.addEventListener('blur', () => { st.w = st.s = st.a = st.d = st.space = 0; });
+    }
     // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
     this.mouseFireDown = false;
     this.mouseFireAt = 0;
@@ -205503,22 +205544,23 @@ class SceneMain extends Phaser.Scene {
           this.player.update();
           // тач-джойстик имеет приоритет над клавиатурой
           const touchMove = this.touchControls.getMove();
+          const gk = window.__GAME_KEYS__ || { w: 0, s: 0, a: 0, d: 0, space: 0 };
           if (touchMove.x !== 0 || touchMove.y !== 0) {
             this.player.move(touchMove.x, touchMove.y);
           } else {
-            if (this.keyW.isDown) {
+            if (this.keyW.isDown || gk.w > 0) {
               this.player.moveUp();
-            } else if (this.keyS.isDown) {
+            } else if (this.keyS.isDown || gk.s > 0) {
               this.player.moveDown();
             }
-            if (this.keyA.isDown) {
+            if (this.keyA.isDown || gk.a > 0) {
               this.player.moveLeft();
-            } else if (this.keyD.isDown) {
+            } else if (this.keyD.isDown || gk.d > 0) {
               this.player.moveRight();
             }
           }
 
-          const firing = this.keySpace.isDown || this.touchControls.isFiring()
+          const firing = this.keySpace.isDown || gk.space > 0 || this.touchControls.isFiring()
             || this.mouseFireDown
             || (this.mouseFireAt && this.time.now - this.mouseFireAt < 200);
           if (firing) {
@@ -205878,6 +205920,26 @@ class SecondStage extends Phaser.Scene {
     this.keyA = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.LEFT]);
     this.keyD = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.D, Phaser.Input.Keyboard.KeyCodes.RIGHT]);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+    // Резервный клавиатурный обработчик (см. SceneMain): дублирует WASD/стрелки
+    // и пробел через нативные слушатели, если плагин Phaser Keyboard молчит.
+    if (!window.__GAME_KEY_FALLBACK__) {
+      window.__GAME_KEY_FALLBACK__ = true;
+      const map = {
+        KeyW: 'w', ArrowUp: 'w', KeyS: 's', ArrowDown: 's',
+        KeyA: 'a', ArrowLeft: 'a', KeyD: 'd', ArrowRight: 'd', Space: 'space',
+      };
+      const st = window.__GAME_KEYS__ = window.__GAME_KEYS__ || { w: 0, s: 0, a: 0, d: 0, space: 0 };
+      window.addEventListener('keydown', (e) => {
+        const k = map[e.code];
+        if (k) st[k] += 1;
+      });
+      window.addEventListener('keyup', (e) => {
+        const k = map[e.code];
+        if (k) st[k] = Math.max(0, st[k] - 1);
+      });
+      window.addEventListener('blur', () => { st.w = st.s = st.a = st.d = st.space = 0; });
+    }
     // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
     this.mouseFireDown = false;
     this.mouseFireAt = 0;
@@ -205991,22 +206053,23 @@ class SecondStage extends Phaser.Scene {
     if (!this.player.getData('isDead')) {
           this.player.update();
           const touchMove = this.touchControls.getMove();
+          const gk = window.__GAME_KEYS__ || { w: 0, s: 0, a: 0, d: 0, space: 0 };
           if (touchMove.x !== 0 || touchMove.y !== 0) {
             this.player.move(touchMove.x, touchMove.y);
           } else {
-            if (this.keyW.isDown) {
+            if (this.keyW.isDown || gk.w > 0) {
               this.player.moveUp();
-            } else if (this.keyS.isDown) {
+            } else if (this.keyS.isDown || gk.s > 0) {
               this.player.moveDown();
             }
-            if (this.keyA.isDown) {
+            if (this.keyA.isDown || gk.a > 0) {
               this.player.moveLeft();
-            } else if (this.keyD.isDown) {
+            } else if (this.keyD.isDown || gk.d > 0) {
               this.player.moveRight();
             }
           }
 
-          const firing = this.keySpace.isDown || this.touchControls.isFiring()
+          const firing = this.keySpace.isDown || gk.space > 0 || this.touchControls.isFiring()
             || this.mouseFireDown
             || (this.mouseFireAt && this.time.now - this.mouseFireAt < 200);
           if (firing) {
@@ -206162,6 +206225,26 @@ class ThirdStage extends Phaser.Scene {
     this.keyA = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.LEFT]);
     this.keyD = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.D, Phaser.Input.Keyboard.KeyCodes.RIGHT]);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+    // Резервный клавиатурный обработчик (см. SceneMain): дублирует WASD/стрелки
+    // и пробел через нативные слушатели, если плагин Phaser Keyboard молчит.
+    if (!window.__GAME_KEY_FALLBACK__) {
+      window.__GAME_KEY_FALLBACK__ = true;
+      const map = {
+        KeyW: 'w', ArrowUp: 'w', KeyS: 's', ArrowDown: 's',
+        KeyA: 'a', ArrowLeft: 'a', KeyD: 'd', ArrowRight: 'd', Space: 'space',
+      };
+      const st = window.__GAME_KEYS__ = window.__GAME_KEYS__ || { w: 0, s: 0, a: 0, d: 0, space: 0 };
+      window.addEventListener('keydown', (e) => {
+        const k = map[e.code];
+        if (k) st[k] += 1;
+      });
+      window.addEventListener('keyup', (e) => {
+        const k = map[e.code];
+        if (k) st[k] = Math.max(0, st[k] - 1);
+      });
+      window.addEventListener('blur', () => { st.w = st.s = st.a = st.d = st.space = 0; });
+    }
     // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
     this.mouseFireDown = false;
     this.mouseFireAt = 0;
@@ -206275,22 +206358,23 @@ class ThirdStage extends Phaser.Scene {
     if (!this.player.getData('isDead')) {
           this.player.update();
           const touchMove = this.touchControls.getMove();
+          const gk = window.__GAME_KEYS__ || { w: 0, s: 0, a: 0, d: 0, space: 0 };
           if (touchMove.x !== 0 || touchMove.y !== 0) {
             this.player.move(touchMove.x, touchMove.y);
           } else {
-            if (this.keyW.isDown) {
+            if (this.keyW.isDown || gk.w > 0) {
               this.player.moveUp();
-            } else if (this.keyS.isDown) {
+            } else if (this.keyS.isDown || gk.s > 0) {
               this.player.moveDown();
             }
-            if (this.keyA.isDown) {
+            if (this.keyA.isDown || gk.a > 0) {
               this.player.moveLeft();
-            } else if (this.keyD.isDown) {
+            } else if (this.keyD.isDown || gk.d > 0) {
               this.player.moveRight();
             }
           }
 
-          const firing = this.keySpace.isDown || this.touchControls.isFiring()
+          const firing = this.keySpace.isDown || gk.space > 0 || this.touchControls.isFiring()
             || this.mouseFireDown
             || (this.mouseFireAt && this.time.now - this.mouseFireAt < 200);
           if (firing) {

@@ -92,6 +92,26 @@ export default class SecondStage extends Phaser.Scene {
     this.keyA = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.LEFT]);
     this.keyD = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.D, Phaser.Input.Keyboard.KeyCodes.RIGHT]);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+    // Резервный клавиатурный обработчик (см. SceneMain): дублирует WASD/стрелки
+    // и пробел через нативные слушатели, если плагин Phaser Keyboard молчит.
+    if (!window.__GAME_KEY_FALLBACK__) {
+      window.__GAME_KEY_FALLBACK__ = true;
+      const map = {
+        KeyW: 'w', ArrowUp: 'w', KeyS: 's', ArrowDown: 's',
+        KeyA: 'a', ArrowLeft: 'a', KeyD: 'd', ArrowRight: 'd', Space: 'space',
+      };
+      const st = window.__GAME_KEYS__ = window.__GAME_KEYS__ || { w: 0, s: 0, a: 0, d: 0, space: 0 };
+      window.addEventListener('keydown', (e) => {
+        const k = map[e.code];
+        if (k) st[k] += 1;
+      });
+      window.addEventListener('keyup', (e) => {
+        const k = map[e.code];
+        if (k) st[k] = Math.max(0, st[k] - 1);
+      });
+      window.addEventListener('blur', () => { st.w = st.s = st.a = st.d = st.space = 0; });
+    }
     // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
     this.mouseFireDown = false;
     this.mouseFireAt = 0;
@@ -205,22 +225,23 @@ export default class SecondStage extends Phaser.Scene {
     if (!this.player.getData('isDead')) {
           this.player.update();
           const touchMove = this.touchControls.getMove();
+          const gk = window.__GAME_KEYS__ || { w: 0, s: 0, a: 0, d: 0, space: 0 };
           if (touchMove.x !== 0 || touchMove.y !== 0) {
             this.player.move(touchMove.x, touchMove.y);
           } else {
-            if (this.keyW.isDown) {
+            if (this.keyW.isDown || gk.w > 0) {
               this.player.moveUp();
-            } else if (this.keyS.isDown) {
+            } else if (this.keyS.isDown || gk.s > 0) {
               this.player.moveDown();
             }
-            if (this.keyA.isDown) {
+            if (this.keyA.isDown || gk.a > 0) {
               this.player.moveLeft();
-            } else if (this.keyD.isDown) {
+            } else if (this.keyD.isDown || gk.d > 0) {
               this.player.moveRight();
             }
           }
 
-          const firing = this.keySpace.isDown || this.touchControls.isFiring()
+          const firing = this.keySpace.isDown || gk.space > 0 || this.touchControls.isFiring()
             || this.mouseFireDown
             || (this.mouseFireAt && this.time.now - this.mouseFireAt < 200);
           if (firing) {
