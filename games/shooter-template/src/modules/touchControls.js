@@ -62,7 +62,38 @@ export default class TouchControls {
       fontStyle: 'bold',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(10000);
 
-    this.isTouch = !!(scene.sys.game.device && scene.sys.game.device.input && scene.sys.game.device.input.touch);
+    // Надёжное определение тач-режима: раньше использовался только
+    // device.input.touch (максимум 1 касание). На планшетах, устройствах со
+    // стилусом и в некоторых браузерах он возвращает false — тогда включался
+    // «мышинный» режим: джойстик реагировал на любой pointer, а сцены стреляли
+    // по клику. Теперь: touch >= 2 ИЛИ PointerEvent.MOVE_TYPE_TOUCH, либо
+    // любое реальное касание подтверждает тач-режим (флаг window, общий для всех сцен).
+    const devTouch = !!(scene.sys.game.device && scene.sys.game.device.input
+      && scene.sys.game.device.input.multiTouch);
+    let moveTypeTouch = false;
+    try {
+      moveTypeTouch = typeof PointerEvent !== 'undefined'
+        && PointerEvent.MOVE_TYPE_TOUCH === 2;
+    } catch (e) { /* older browsers */ }
+    this.isTouch = devTouch || moveTypeTouch || !!window.__TOUCH_MODE__;
+
+    if (this.isTouch) window.__TOUCH_MODE__ = true;
+
+    // Если устройство определилось как «не тач», но пользователь всё-таки
+    // касается экрана — подтверждаем тач-режим глобально и пересоздаём сцену,
+    // чтобы стрельба по клику больше никогда не активировалась на телефоне.
+    if (!this.isTouch) {
+      this._onFirstTouch = (e) => {
+        const pt = e && e.pointerType;
+        if (pt === 'touch' || pt === 'pen') {
+          window.__TOUCH_MODE__ = true;
+          window.removeEventListener('pointerdown', this._onFirstTouch, true);
+          this._onFirstTouch = null;
+          try { scene.scene.restart(); } catch (err) { /* noop */ }
+        }
+      };
+      window.addEventListener('pointerdown', this._onFirstTouch, true);
+    }
 
     // На десктопе прячем визуал и полностью отключаем тач-зоны: интерактивные
     // зоны перехватывали события указателя и могли «съедать» фокус/движение.
@@ -158,6 +189,10 @@ export default class TouchControls {
   }
 
   destroy() {
+    if (this._onFirstTouch) {
+      window.removeEventListener('pointerdown', this._onFirstTouch, true);
+      this._onFirstTouch = null;
+    }
     if (this.scene && this.scene.input) {
       this.scene.input.off('pointermove', this._onJoyMove);
       this.scene.input.off('pointerup', this._onJoyUp);
