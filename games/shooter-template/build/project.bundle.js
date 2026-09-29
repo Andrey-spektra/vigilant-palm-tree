@@ -64220,22 +64220,26 @@ class Player extends Entity {
   // вызовов нет. Аддитивная схема (_wishX/_wishY), которую я пробовал ранее,
   // ломала движение: update() обнулял body.velocity, а накопленные _wish*
   // нигде не применялись — герой стоял на месте.
+  // Каждое направление ДОБАВЛЯЕТ свою составляющую, а не перезаписывает
+  // всю скорость: раньше moveUp() присваивал velocity.y и молча обнулял
+  // velocity.x (и наоборот) — при удержании двух клавиш герой «клинит»:
+  // последнее вызванное в кадре направление перетираает первое.
   moveUp() {
-    this.body.velocity.y = -this.getData('speed');
+    this.body.velocity.y -= this.getData('speed');
   }
 
   moveDown() {
-    this.body.velocity.y = this.getData('speed');
+    this.body.velocity.y += this.getData('speed');
   }
 
   moveLeft() {
     this.setFlipX(true);
-    this.body.velocity.x = -this.getData('speed');
+    this.body.velocity.x -= this.getData('speed');
   }
 
   moveRight() {
     this.setFlipX(false);
-    this.body.velocity.x = this.getData('speed');
+    this.body.velocity.x += this.getData('speed');
   }
 
   // векторное движение (для тач-джойстика): dx, dy в диапазоне -1..1
@@ -64278,6 +64282,23 @@ class Player extends Entity {
     const halfH = this.displayHeight / 2;
     this.x = Phaser.Math.Clamp(this.x, halfW, this.scene.game.config.width - halfW);
     this.y = Phaser.Math.Clamp(this.y, halfH, this.scene.game.config.height - halfH);
+
+    // Ограничение скорости: движение из сцены вызывает moveUp()/moveLeft() и
+    // т.д. ПОСЛЕ этого update(), каждое направление добавляет свою составляющую
+    // (см. moveUp). Если в одном кадре направление применилось дважды (дубль
+    // через резервную клавиатуру), величина может вырасти — нормализуем её
+    // обратно к базовой скорости, чтобы «клининг» и разгон были невозможны.
+    const sp = this.getData('speed') || 200;
+    const vx = this.body.velocity.x;
+    const vy = this.body.velocity.y;
+    if (vx !== 0 || vy !== 0) {
+      const len = Math.sqrt(vx * vx + vy * vy);
+      const cap = sp * Math.SQRT2 + 1;
+      if (len > cap) {
+        this.body.velocity.x = (vx / len) * cap;
+        this.body.velocity.y = (vy / len) * cap;
+      }
+    }
 
     if (this.getData('isShooting')) {
       if (this.getData('timerShootTick') < this.getData('timerShootDelay')) {
@@ -136627,6 +136648,18 @@ window.addEventListener('keydown', (e) => {
   }
 }, { passive: false });
 
+// Страховка для ПРОБЕЛА: если фокус документа потерян (офлайн-файл открыт
+// двойным кликом, пользователь кликнул мимо canvas и т.п.) — плагин Phaser
+// Keyboard может перестать получать события и isDown по пробелу «залипает»
+// в ложном состоянии. Глобальный keydown выставляет флаг резервной
+// клавиатуры напрямую; keyup/blur сбрасывают его в сценах.
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar') {
+    const st = window.__GAME_KEYS__;
+    if (st) st.space = true;
+  }
+});
+
 // Правая кнопка мыши стреляет — контекстное меню браузера (и «кружок»-эффект) убираем.
 const killCtxMenu = (e) => { e.preventDefault(); return false; };
 document.addEventListener('contextmenu', killCtxMenu);
@@ -205335,15 +205368,20 @@ class SceneMain extends Phaser.Scene {
         KeyA: 'a', ArrowLeft: 'a', KeyD: 'd', ArrowRight: 'd', Space: 'space',
       };
       const st = window.__GAME_KEYS__ = window.__GAME_KEYS__ || { w: false, s: false, a: false, d: false, space: false };
+      const resetKeys = () => { st.w = st.s = st.a = st.d = st.space = false; };
+      // capture-фаза: сработаем раньше любого stopPropagation внутри Phaser
       window.addEventListener('keydown', (e) => {
         const k = map[e.code];
         if (k) st[k] = true;
-      });
+      }, true);
       window.addEventListener('keyup', (e) => {
         const k = map[e.code];
         if (k) st[k] = false;
+      }, true);
+      window.addEventListener('blur', resetKeys);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) resetKeys();
       });
-      window.addEventListener('blur', () => { st.w = st.s = st.a = st.d = st.space = false; });
     }
     // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
     this.mouseFireDown = false;
@@ -205931,15 +205969,20 @@ class SecondStage extends Phaser.Scene {
         KeyA: 'a', ArrowLeft: 'a', KeyD: 'd', ArrowRight: 'd', Space: 'space',
       };
       const st = window.__GAME_KEYS__ = window.__GAME_KEYS__ || { w: false, s: false, a: false, d: false, space: false };
+      const resetKeys = () => { st.w = st.s = st.a = st.d = st.space = false; };
+      // capture-фаза: сработаем раньше любого stopPropagation внутри Phaser
       window.addEventListener('keydown', (e) => {
         const k = map[e.code];
         if (k) st[k] = true;
-      });
+      }, true);
       window.addEventListener('keyup', (e) => {
         const k = map[e.code];
         if (k) st[k] = false;
+      }, true);
+      window.addEventListener('blur', resetKeys);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) resetKeys();
       });
-      window.addEventListener('blur', () => { st.w = st.s = st.a = st.d = st.space = false; });
     }
     // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
     this.mouseFireDown = false;
@@ -206236,15 +206279,20 @@ class ThirdStage extends Phaser.Scene {
         KeyA: 'a', ArrowLeft: 'a', KeyD: 'd', ArrowRight: 'd', Space: 'space',
       };
       const st = window.__GAME_KEYS__ = window.__GAME_KEYS__ || { w: false, s: false, a: false, d: false, space: false };
+      const resetKeys = () => { st.w = st.s = st.a = st.d = st.space = false; };
+      // capture-фаза: сработаем раньше любого stopPropagation внутри Phaser
       window.addEventListener('keydown', (e) => {
         const k = map[e.code];
         if (k) st[k] = true;
-      });
+      }, true);
       window.addEventListener('keyup', (e) => {
         const k = map[e.code];
         if (k) st[k] = false;
+      }, true);
+      window.addEventListener('blur', resetKeys);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) resetKeys();
       });
-      window.addEventListener('blur', () => { st.w = st.s = st.a = st.d = st.space = false; });
     }
     // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
     this.mouseFireDown = false;

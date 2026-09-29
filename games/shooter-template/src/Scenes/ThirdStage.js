@@ -102,15 +102,20 @@ export default class ThirdStage extends Phaser.Scene {
         KeyA: 'a', ArrowLeft: 'a', KeyD: 'd', ArrowRight: 'd', Space: 'space',
       };
       const st = window.__GAME_KEYS__ = window.__GAME_KEYS__ || { w: false, s: false, a: false, d: false, space: false };
+      const resetKeys = () => { st.w = st.s = st.a = st.d = st.space = false; };
+      // capture-фаза: сработаем раньше любого stopPropagation внутри Phaser
       window.addEventListener('keydown', (e) => {
         const k = map[e.code];
         if (k) st[k] = true;
-      });
+      }, true);
       window.addEventListener('keyup', (e) => {
         const k = map[e.code];
         if (k) st[k] = false;
+      }, true);
+      window.addEventListener('blur', resetKeys);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) resetKeys();
       });
-      window.addEventListener('blur', () => { st.w = st.s = st.a = st.d = st.space = false; });
     }
     // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
     this.mouseFireDown = false;
