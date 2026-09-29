@@ -26,7 +26,8 @@ let timerText;
 let stageText;
 const zero = 0;
 let sec = 0;
-const ammunition = 100;
+// Глава одна, слова бесконечны.
+const ammunition = Infinity;
 
 export default class SceneMain extends Phaser.Scene {
   constructor() {
@@ -44,7 +45,7 @@ export default class SceneMain extends Phaser.Scene {
     this.bg = this.add.image(512, 320, 'deepspace');
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
-    stageText = this.add.text(250, 16, 'Глава 1', {
+    stageText = this.add.text(250, 16, 'Глава 1 — бесконечные слова', {
       fontSize: '32px',
       fill: '#fff',
     });
@@ -297,7 +298,6 @@ export default class SceneMain extends Phaser.Scene {
     });
 
     const nextScene = () => this.scene.start('SceneScores');
-    const secondStage = () => this.scene.start('SecondStage');
 
     sec = 60;
     // Add timer
@@ -305,7 +305,8 @@ export default class SceneMain extends Phaser.Scene {
       timerText.setText(`Время: ${sec}`);
       sec--;
       if (sec < 0) {
-        secondStage();
+        // Единственная глава: по истечении времени — финал.
+        nextScene();
         stopTimer();
       }
     }, 1000);
@@ -328,16 +329,10 @@ export default class SceneMain extends Phaser.Scene {
 
 
   update() {
-    const currentAmmo = Storage.currentAmmo();
-
-        scoreText.setText(`Читатели: ${score}`);
-        ammoText.setText(`Слова: ${currentAmmo}`);
+    // Слова бесконечны — проверка боезапасa больше не нужна.
+    scoreText.setText(`Читатели: ${score}`);
+        ammoText.setText('Слова: ∞');
         hpText.setText(`Жизни: ${this.player.getData('hp')}/${this.player.getData('maxHp')}`);
-
-    if (currentAmmo < zero) {
-      this.player.onDestroy();
-      clearInterval(timer);
-    }
 
     if (!this.player.getData('isDead') && !this.player.getData('dying')) {
           this.player.update();

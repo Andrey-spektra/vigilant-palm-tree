@@ -1,0 +1,128 @@
+diff --git a/games/shooter-template/src/Scenes/SceneMain.js b/games/shooter-template/src/Scenes/SceneMain.js
+index f444049..7de25ca 100644
+--- a/games/shooter-template/src/Scenes/SceneMain.js
++++ b/games/shooter-template/src/Scenes/SceneMain.js
+@@ -26,7 +26,8 @@ let timerText;
+ let stageText;
+ const zero = 0;
+ let sec = 0;
+-const ammunition = 100;
++// Глава одна, слова бесконечны.
++const ammunition = Infinity;
+ 
+ export default class SceneMain extends Phaser.Scene {
+   constructor() {
+@@ -44,7 +45,7 @@ export default class SceneMain extends Phaser.Scene {
+     this.bg = this.add.image(512, 320, 'deepspace');
+     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
+ 
+-    stageText = this.add.text(250, 16, 'Глава 1', {
++    stageText = this.add.text(250, 16, 'Глава 1 — бесконечные слова', {
+       fontSize: '32px',
+       fill: '#fff',
+     });
+@@ -297,7 +298,6 @@ export default class SceneMain extends Phaser.Scene {
+     });
+ 
+     const nextScene = () => this.scene.start('SceneScores');
+-    const secondStage = () => this.scene.start('SecondStage');
+ 
+     sec = 60;
+     // Add timer
+@@ -305,7 +305,8 @@ export default class SceneMain extends Phaser.Scene {
+       timerText.setText(`Время: ${sec}`);
+       sec--;
+       if (sec < 0) {
+-        secondStage();
++        // Единственная глава: по истечении времени — финал.
++        nextScene();
+         stopTimer();
+       }
+     }, 1000);
+@@ -328,17 +329,11 @@ export default class SceneMain extends Phaser.Scene {
+ 
+ 
+   update() {
+-    const currentAmmo = Storage.currentAmmo();
+-
+-        scoreText.setText(`Читатели: ${score}`);
+-        ammoText.setText(`Слова: ${currentAmmo}`);
++    // Слова бесконечны — проверка боезапасa больше не нужна.
++    scoreText.setText(`Читатели: ${score}`);
++        ammoText.setText('Слова: ∞');
+         hpText.setText(`Жизни: ${this.player.getData('hp')}/${this.player.getData('maxHp')}`);
+ 
+-    if (currentAmmo < zero) {
+-      this.player.onDestroy();
+-      clearInterval(timer);
+-    }
+-
+     if (!this.player.getData('isDead') && !this.player.getData('dying')) {
+           this.player.update();
+           // тач-джойстик имеет приоритет над клавиатурой
+diff --git a/games/shooter-template/src/entities.js b/games/shooter-template/src/entities.js
+index d360ff3..0ea1384 100644
+--- a/games/shooter-template/src/entities.js
++++ b/games/shooter-template/src/entities.js
+@@ -5,7 +5,8 @@
+ /* eslint-disable no-use-before-define */
+ /* eslint-disable no-unused-vars */
+ 
+-let ammunition = 100;
++// Бесконечные слова: счётчик больше не расходуется — стрельба всегда доступна.
++let ammunition = Infinity;
+ const Storage = require('./modules/storage');
+ 
+ export class Entity extends Phaser.GameObjects.Sprite {
+@@ -228,7 +229,7 @@ export class Player extends Entity {
+         }
+ 
+         this.setData('timerShootTick', 0);
+-        ammunition--;
++        // Слова бесконечны: счётчик не расходуется.
+         Storage.setAmmo(ammunition);
+       }
+     }
+diff --git a/games/shooter-template/src/index.js b/games/shooter-template/src/index.js
+index 341cad2..cdeff66 100644
+--- a/games/shooter-template/src/index.js
++++ b/games/shooter-template/src/index.js
+@@ -8,8 +8,6 @@ import manifest from './Config/assets';
+ import SceneMain from './Scenes/SceneMain';
+ import SceneMainMenu from './Scenes/SceneMainMenu';
+ import SceneScores from './Scenes/SceneScores';
+-import SecondStage from './Scenes/SecondStage';
+-import ThirdStage from './Scenes/ThirdStage';
+ import SceneIntro from './Scenes/SceneIntro';
+ 
+ // Стрелки и пробел не должны прокручивать страницу под игрой.
+@@ -53,8 +51,6 @@ class Game extends Phaser.Game {
+     super(Object.assign({}, config, { parent: 'game-container' }));
+     this.input.mouse.disableContextMenu();
+     this.scene.add('SceneIntro', SceneIntro);
+-    this.scene.add('ThirdStage', ThirdStage);
+-    this.scene.add('SecondStage', SecondStage);
+     this.scene.add('SceneScores', SceneScores);
+     this.scene.add('SceneMainMenu', SceneMainMenu);
+     this.scene.add('SceneMain', SceneMain);
+diff --git a/games/shooter-template/src/modules/storage.js b/games/shooter-template/src/modules/storage.js
+index 0ecd82f..cabed67 100644
+--- a/games/shooter-template/src/modules/storage.js
++++ b/games/shooter-template/src/modules/storage.js
+@@ -29,12 +29,14 @@ const Storage = (() => {
+   }
+ 
+   function setAmmo(ammo) {
+-    safeStoreSet('Ammunition', ammo);
++    // Infinity через JSON.stringify превращается в null — сохраняем как строку-маркер.
++    safeStoreSet('Ammunition', ammo === Infinity ? '∞' : ammo);
+   }
+ 
+   function currentAmmo() {
+     const v = safeStoreGet('Ammunition');
+-    return v === null ? 100 : v;
++    if (v === null || v === '∞') return Infinity; // слова бесконечны
++    return v;
+   }
+ 
+   function setGameFinished(value) {
