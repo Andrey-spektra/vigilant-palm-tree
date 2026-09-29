@@ -7,7 +7,11 @@ export default {
   width: 1024,
   height: 640,
   backgroundColor: 'black',
-  parent: 'main-container',
+  // Если контейнера нет в DOM (офлайн-сборка), Phaser сам создаёт canvas
+  // и вставляет его в document.body — раньше здесь был несуществующий
+  // 'main-container' и страница оставалась чёрной.
+  parent: (typeof document !== 'undefined' && document.getElementById('game-container'))
+    || (typeof document !== 'undefined' ? document.body : undefined),
   dom: {
     createContainer: true,
   },

@@ -38,6 +38,11 @@ export class Entity extends Phaser.GameObjects.Sprite {
         }
       }, this);
       this.setData('isDead', true);
+      // звук взрыва (безопасно: window.SFX не бросает исключений)
+      if (window.SFX) {
+        window.SFX.play(this.scene.game,
+          Phaser.Math.Between(0, 1) === 0 ? 'sndExplode0' : 'sndExplode1', 0.35);
+      }
     }
   }
 }
@@ -136,6 +141,9 @@ export class Player extends Entity {
         const laser = new PlayerLaser(this.scene, muzzleX, muzzleY, dir);
         this.scene.playerLasers.add(laser);
 
+        // звук выстрела (слово) — безопасный проигрыватель
+        if (window.SFX) window.SFX.play(this.scene.game, 'sndLaser', 0.18);
+
         // фраза при стрельбе (не чаще раза в полторы секунды)
         const now = this.scene.time.now;
         const last = this.getData('lastSpeechAt') || 0;
@@ -170,6 +178,7 @@ export class Player extends Entity {
           });
           tx.setOrigin(0.5);
           tx.setDepth(20);
+          if (window.Speech) window.Speech.say(phrase);
           this.scene.authorShootSpeech = tx;
           this.scene.tweens.add({
             targets: tx,
@@ -300,6 +309,7 @@ export class GunShip extends Entity {
       });
       this.speech.setOrigin(0.5);
       this.speech.setDepth(20);
+      if (window.Speech) window.Speech.say(phrase);
       this.scene.tweens.add({
         targets: this.speech,
         y: this.speech.y - 60,
@@ -382,6 +392,7 @@ export class GunShip extends Entity {
     });
     tx.setOrigin(0.5);
     tx.setDepth(30);
+    if (window.Speech) window.Speech.say(phrase);
     this.scene.tweens.add({
       targets: tx,
       y: tx.y - 60,
