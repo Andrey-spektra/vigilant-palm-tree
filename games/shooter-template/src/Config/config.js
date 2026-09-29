@@ -22,6 +22,20 @@ export default {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
+  input: {
+    keyboard: {
+      // Phaser сам вешает keydown-слушатель с preventDefault на эти клавиши —
+      // стрелки и пробел не прокручивают страницу даже когда фокус на canvas.
+      killPageScrollOnKeyboardKeys: true,
+      capture: [
+        Phaser.Input.Keyboard.KeyCodes.W, Phaser.Input.Keyboard.KeyCodes.A,
+        Phaser.Input.Keyboard.KeyCodes.S, Phaser.Input.Keyboard.KeyCodes.D,
+        Phaser.Input.Keyboard.KeyCodes.UP, Phaser.Input.Keyboard.KeyCodes.DOWN,
+        Phaser.Input.Keyboard.KeyCodes.LEFT, Phaser.Input.Keyboard.KeyCodes.RIGHT,
+        Phaser.Input.Keyboard.KeyCodes.SPACE,
+      ],
+    },
+  },
   physics: {
     default: 'arcade',
     arcade: {

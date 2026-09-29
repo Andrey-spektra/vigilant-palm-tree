@@ -64,12 +64,15 @@ export default class TouchControls {
 
     this.isTouch = !!(scene.sys.game.device && scene.sys.game.device.input && scene.sys.game.device.input.touch);
 
-    // На десктопе прячем визуал, зоны оставляем (не мешают)
+    // На десктопе прячем визуал и полностью отключаем тач-зоны: интерактивные
+    // зоны перехватывали события указателя и могли «съедать» фокус/движение.
     if (!this.isTouch) {
       this.base.setVisible(false);
       this.thumb.setVisible(false);
       this.fireBtn.setVisible(false);
       this.fireLabel.setVisible(false);
+      this.joystickZone.disableInteractive();
+      this.fireZone.disableInteractive();
     }
 
     // указатель джойстика: привязываемся к pointerId, чтобы второй палец (огонь)
@@ -143,11 +146,14 @@ export default class TouchControls {
   }
 
   // возвращает направление движения: {x, y} в диапазоне -1..1
+  // на десктопе джойстик отключён — всегда ноль, чтобы не перекрывать клавиатуру
   getMove() {
+    if (!this.isTouch) return { x: 0, y: 0 };
     return { x: this.moveX, y: this.moveY };
   }
 
   isFiring() {
+    if (!this.isTouch) return false;
     return this.firing;
   }
 
