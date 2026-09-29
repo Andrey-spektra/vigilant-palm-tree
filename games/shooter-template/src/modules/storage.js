@@ -29,12 +29,14 @@ const Storage = (() => {
   }
 
   function setAmmo(ammo) {
-    safeStoreSet('Ammunition', ammo);
+    // Infinity через JSON.stringify превращается в null — сохраняем как строку-маркер.
+    safeStoreSet('Ammunition', ammo === Infinity ? '∞' : ammo);
   }
 
   function currentAmmo() {
     const v = safeStoreGet('Ammunition');
-    return v === null ? 100 : v;
+    if (v === null || v === '∞') return Infinity; // слова бесконечны
+    return v;
   }
 
   function setGameFinished(value) {

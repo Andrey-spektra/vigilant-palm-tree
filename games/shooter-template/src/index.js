@@ -8,8 +8,6 @@ import manifest from './Config/assets';
 import SceneMain from './Scenes/SceneMain';
 import SceneMainMenu from './Scenes/SceneMainMenu';
 import SceneScores from './Scenes/SceneScores';
-import SecondStage from './Scenes/SecondStage';
-import ThirdStage from './Scenes/ThirdStage';
 import SceneIntro from './Scenes/SceneIntro';
 
 // Стрелки и пробел не должны прокручивать страницу под игрой.
@@ -53,8 +51,6 @@ class Game extends Phaser.Game {
     super(Object.assign({}, config, { parent: 'game-container' }));
     this.input.mouse.disableContextMenu();
     this.scene.add('SceneIntro', SceneIntro);
-    this.scene.add('ThirdStage', ThirdStage);
-    this.scene.add('SecondStage', SecondStage);
     this.scene.add('SceneScores', SceneScores);
     this.scene.add('SceneMainMenu', SceneMainMenu);
     this.scene.add('SceneMain', SceneMain);

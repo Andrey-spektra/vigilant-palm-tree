@@ -5,7 +5,8 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-unused-vars */
 
-let ammunition = 100;
+// Бесконечные слова: счётчик больше не расходуется — стрельба всегда доступна.
+let ammunition = Infinity;
 const Storage = require('./modules/storage');
 
 export class Entity extends Phaser.GameObjects.Sprite {
@@ -228,7 +229,7 @@ export class Player extends Entity {
         }
 
         this.setData('timerShootTick', 0);
-        ammunition--;
+        // Слова бесконечны: счётчик не расходуется.
         Storage.setAmmo(ammunition);
       }
     }

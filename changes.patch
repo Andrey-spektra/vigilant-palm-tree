@@ -1,0 +1,16 @@
+diff --git a/.gitignore b/.gitignore
+index d0af43b..bc41261 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,2 +1,8 @@
+ # Build artifacts
+-build/
+\ No newline at end of file
++build/
++
++# Local caches / dependencies
++node_modules/
++
++# Logs
++*.log
+\ No newline at end of file
