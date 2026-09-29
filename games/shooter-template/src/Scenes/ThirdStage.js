@@ -117,16 +117,29 @@ export default class ThirdStage extends Phaser.Scene {
         if (document.hidden) resetKeys();
       });
     }
-    // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
+    // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия.
+    // ВАЖНО: только для мыши! На телефоне касание джойстика давало pointerdown
+    // с leftButtonDown() === true и игрок стрелял словами при любом движении.
+    // Огонь на тач-устройствах — ТОЛЬКО по кнопке «ОГОНЬ» (touchControls.isFiring()).
     this.mouseFireDown = false;
     this.mouseFireAt = 0;
+    const isTouchDevice = !!window.__TOUCH_MODE__
+      || !!(this.sys.game.device
+        && this.sys.game.device.input
+        && (this.sys.game.device.input.multiTouch
+          || this.sys.game.device.input.touch));
     this.input.on('pointerdown', (p) => {
+      if (isTouchDevice) return;
       if (p.rightButtonDown() || p.leftButtonDown()) {
         this.mouseFireDown = true;
         this.mouseFireAt = this.time.now;
       }
     });
     this.input.on('pointerup', (p) => {
+      if (isTouchDevice) {
+        this.mouseFireDown = false;
+        return;
+      }
       if (!p.rightButtonDown() && !p.leftButtonDown()) this.mouseFireDown = false;
     });
     // правая кнопка мыши не должна вызывать контекстное меню
