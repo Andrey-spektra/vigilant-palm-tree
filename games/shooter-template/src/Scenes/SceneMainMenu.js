@@ -73,7 +73,9 @@ export default class SceneMainMenu extends Phaser.Scene {
           <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.5;">
             <b>Управление:</b><br>
             На клавиатуре — [W][A][S][D] ходьба, [ПРОБЕЛ] — слово.<br>
-            На телефоне — джойстик слева, пламенная речь справа.
+            На телефоне — джойстик слева, кнопка «ОГОНЬ» справа.<br>
+            Режим бесконечный: слова не кончаются, глава не заканчивается —<br>
+            играй, пока жив. Смерть возвращает в меню.
           </p>
           <div style="text-align:center;">
             <button id="hintClose" style="

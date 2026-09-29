@@ -6,7 +6,9 @@
 /* eslint-disable no-unused-vars */
 
 let ammunition = 100;
-const Storage = require('./modules/storage');
+// В бесконечном режиме слова не расходуются: флаг ниже отключает учёт боезапаса
+// (Storage больше не используется для патронов — иначе счётчик показывал «NaN»).
+const INFINITE_AMMO = true;
 
 export class Entity extends Phaser.GameObjects.Sprite {
   constructor(scene, x, y, key, type) {
@@ -58,6 +60,13 @@ export class Player extends Entity {
     this.setData('hp', 3);
     this.setData('invulnUntil', 0);
 
+    // Плавное торможение: когда игрок отпускает джойстик/клавиши, герой
+    // плавно гасит скорость (раньше его «тянуло в центр» — update() обнулял
+    // velocity каждый кадр, и любое нулевое касание мгновенно стопорило).
+    this.body.setDamping(true);
+    this.body.setDrag(0.0008, 0.0008);
+    this.body.setMaxVelocity(this.getData('speed') * Math.SQRT2 + 1);
+
     this.play('sprPlayer');
   }
 
@@ -87,22 +96,27 @@ export class Player extends Entity {
   // всю скорость: раньше moveUp() присваивал velocity.y и молча обнулял
   // velocity.x (и наоборот) — при удержании двух клавиш герой «клинит»:
   // последнее вызванное в кадре направление перетираает первое.
+  // Раньше все move*() ДЕЛАЛИ velocity += speed каждый кадр. Теперь, после
+  // отмены обнуления скорости в update(), такой «накопительный» режим дал бы
+  // вечный разгон до бесконечности — поэтому переключены на прямое
+  // присваивание целевой скорости; торможение при отпускании даёт damping
+  // (см. setDamping ниже в конструкторе).
   moveUp() {
-    this.body.velocity.y -= this.getData('speed');
+    this.body.velocity.y = -this.getData('speed');
   }
 
   moveDown() {
-    this.body.velocity.y += this.getData('speed');
+    this.body.velocity.y = this.getData('speed');
   }
 
   moveLeft() {
     this.setFlipX(true);
-    this.body.velocity.x -= this.getData('speed');
+    this.body.velocity.x = -this.getData('speed');
   }
 
   moveRight() {
     this.setFlipX(false);
-    this.body.velocity.x += this.getData('speed');
+    this.body.velocity.x = this.getData('speed');
   }
 
   // векторное движение (для тач-джойстика): dx, dy в диапазоне -1..1
@@ -137,7 +151,12 @@ export class Player extends Entity {
   }
 
   update() {
-    this.body.setVelocity(0, 0);
+    // НИКАКОГО setVelocity(0,0): раньше эта строка обнуляла скорость героя
+    // каждый кадр ДО применения ввода, и при коротком «нулевом» вводе
+    // (например, джойстик вернулся в нейтраль между кадрами) герой мгновенно
+    // останавливался посреди экрана. Ускорение теперь задаётся напрямую
+    // velocity-присваиванием в move()/moveUp() и т.д., а торможение —
+    // через damping, поэтому разгон и остановка плавные.
 
     // центр спрайта не должен уходить за пределы экрана дальше, чем на половину габарита,
     // иначе герой окажется обрезанным (половина роста/ширины уйдёт за край)
@@ -228,8 +247,11 @@ export class Player extends Entity {
         }
 
         this.setData('timerShootTick', 0);
-        ammunition--;
-        Storage.setAmmo(ammunition);
+        // Боезапас больше не расходуется: в бесконечном режиме слов нет
+        // «конца главы» из-за закончившихся патронов.
+        if (!INFINITE_AMMO) {
+          ammunition--;
+        }
       }
     }
   }

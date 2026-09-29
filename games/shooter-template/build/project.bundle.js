@@ -401,7 +401,7 @@ module.exports = GetFastValue;
 //  and [vecmath](https://github.com/mattdesl/vecmath) by mattdesl
 
 var Class = __webpack_require__(0);
-var FuzzyEqual = __webpack_require__(99);
+var FuzzyEqual = __webpack_require__(98);
 
 /**
  * @classdesc
@@ -2713,9 +2713,9 @@ module.exports = {
 
 var Class = __webpack_require__(0);
 var ComponentsToJSON = __webpack_require__(308);
-var DataManager = __webpack_require__(102);
+var DataManager = __webpack_require__(101);
 var EventEmitter = __webpack_require__(9);
-var Events = __webpack_require__(103);
+var Events = __webpack_require__(102);
 
 /**
  * @classdesc
@@ -19604,70 +19604,6 @@ var Common = __webpack_require__(20);
 /* 96 */
 /***/ (function(module, exports) {
 
-const Storage = (() => {
-  // На file:// (оффлайн-запуск без сервера) некоторые браузеры блокируют
-  // localStorage и кидают SecurityError при любом обращении. Не даём ему
-  // ронять сцену — любой сбой возвращаем безопасным значением.
-  function safeStoreGet(key) {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw === null ? null : JSON.parse(raw);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function safeStoreSet(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (e) {
-      /* молча пропускаем — оффлайн без localStorage игра работает, только не запоминает счёт */
-    }
-  }
-
-  function currentScore(score) {
-    safeStoreSet('currentScore', score);
-  }
-
-  function getCurrentScore() {
-    const v = safeStoreGet('currentScore');
-    return v === null ? 0 : v;
-  }
-
-  function setAmmo(ammo) {
-    safeStoreSet('Ammunition', ammo);
-  }
-
-  function currentAmmo() {
-    const v = safeStoreGet('Ammunition');
-    return v === null ? 100 : v;
-  }
-
-  function setGameFinished(value) {
-    safeStoreSet('gameFinished', Boolean(value));
-  }
-
-  function isGameFinished() {
-    return safeStoreGet('gameFinished') === true;
-  }
-  return {
-    currentScore,
-    getCurrentScore,
-    setAmmo,
-    currentAmmo,
-    setGameFinished,
-    isGameFinished,
-  };
-})();
-
-
-module.exports = Storage;
-
-
-/***/ }),
-/* 97 */
-/***/ (function(module, exports) {
-
 /**
  * @author       Richard Davey <rich@photonstorm.com>
  * @copyright    2020 Photon Storm Ltd.
@@ -19799,7 +19735,7 @@ module.exports = ALIGN_CONST;
 
 
 /***/ }),
-/* 98 */
+/* 97 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -19833,7 +19769,7 @@ module.exports = FromPercent;
 
 
 /***/ }),
-/* 99 */
+/* 98 */
 /***/ (function(module, exports) {
 
 /**
@@ -19867,7 +19803,7 @@ module.exports = Equal;
 
 
 /***/ }),
-/* 100 */
+/* 99 */
 /***/ (function(module, exports) {
 
 /**
@@ -19908,7 +19844,7 @@ module.exports = GetBoolean;
 
 
 /***/ }),
-/* 101 */
+/* 100 */
 /***/ (function(module, exports) {
 
 /**
@@ -20080,7 +20016,7 @@ module.exports = TWEEN_CONST;
 
 
 /***/ }),
-/* 102 */
+/* 101 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -20787,7 +20723,7 @@ module.exports = DataManager;
 
 
 /***/ }),
-/* 103 */
+/* 102 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -20818,7 +20754,7 @@ module.exports = {
 
 
 /***/ }),
-/* 104 */
+/* 103 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -22739,7 +22675,7 @@ module.exports = BaseCamera;
 
 
 /***/ }),
-/* 105 */
+/* 104 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -22765,7 +22701,7 @@ module.exports = {
 
 
 /***/ }),
-/* 106 */
+/* 105 */
 /***/ (function(module, exports) {
 
 /**
@@ -22809,7 +22745,7 @@ module.exports = SnapFloor;
 
 
 /***/ }),
-/* 107 */
+/* 106 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -22854,7 +22790,7 @@ module.exports = Merge;
 
 
 /***/ }),
-/* 108 */
+/* 107 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -23673,7 +23609,7 @@ module.exports = Frame;
 
 
 /***/ }),
-/* 109 */
+/* 108 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -23683,7 +23619,7 @@ module.exports = Frame;
  */
 
 var Class = __webpack_require__(0);
-var Contains = __webpack_require__(110);
+var Contains = __webpack_require__(109);
 var GetPoint = __webpack_require__(433);
 var GetPoints = __webpack_require__(434);
 var GEOM_CONST = __webpack_require__(53);
@@ -24055,7 +23991,7 @@ module.exports = Ellipse;
 
 
 /***/ }),
-/* 110 */
+/* 109 */
 /***/ (function(module, exports) {
 
 /**
@@ -24097,7 +24033,7 @@ module.exports = Contains;
 
 
 /***/ }),
-/* 111 */
+/* 110 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -24108,12 +24044,12 @@ module.exports = Contains;
 
 var Actions = __webpack_require__(267);
 var Class = __webpack_require__(0);
-var Events = __webpack_require__(103);
+var Events = __webpack_require__(102);
 var GetFastValue = __webpack_require__(2);
 var GetValue = __webpack_require__(6);
 var IsPlainObject = __webpack_require__(7);
 var Range = __webpack_require__(428);
-var Set = __webpack_require__(112);
+var Set = __webpack_require__(111);
 var Sprite = __webpack_require__(66);
 
 /**
@@ -25735,7 +25671,7 @@ module.exports = Group;
 
 
 /***/ }),
-/* 112 */
+/* 111 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -26184,7 +26120,7 @@ module.exports = Set;
 
 
 /***/ }),
-/* 113 */
+/* 112 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -26285,7 +26221,7 @@ module.exports = Image;
 
 
 /***/ }),
-/* 114 */
+/* 113 */
 /***/ (function(module, exports) {
 
 /**
@@ -26314,7 +26250,7 @@ module.exports = HasValue;
 
 
 /***/ }),
-/* 115 */
+/* 114 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -26378,7 +26314,7 @@ module.exports = FillPathWebGL;
 
 
 /***/ }),
-/* 116 */
+/* 115 */
 /***/ (function(module, exports) {
 
 /**
@@ -26504,7 +26440,7 @@ module.exports = Pair;
 
 
 /***/ }),
-/* 117 */
+/* 116 */
 /***/ (function(module, exports) {
 
 /**
@@ -26535,7 +26471,7 @@ module.exports = IsInLayerBounds;
 
 
 /***/ }),
-/* 118 */
+/* 117 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -26755,7 +26691,7 @@ module.exports = LayerData;
 
 
 /***/ }),
-/* 119 */
+/* 118 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -26980,7 +26916,7 @@ module.exports = MapData;
 
 
 /***/ }),
-/* 120 */
+/* 119 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -27381,6 +27317,70 @@ var Tileset = new Class({
 });
 
 module.exports = Tileset;
+
+
+/***/ }),
+/* 120 */
+/***/ (function(module, exports) {
+
+const Storage = (() => {
+  // На file:// (оффлайн-запуск без сервера) некоторые браузеры блокируют
+  // localStorage и кидают SecurityError при любом обращении. Не даём ему
+  // ронять сцену — любой сбой возвращаем безопасным значением.
+  function safeStoreGet(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw === null ? null : JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function safeStoreSet(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      /* молча пропускаем — оффлайн без localStorage игра работает, только не запоминает счёт */
+    }
+  }
+
+  function currentScore(score) {
+    safeStoreSet('currentScore', score);
+  }
+
+  function getCurrentScore() {
+    const v = safeStoreGet('currentScore');
+    return v === null ? 0 : v;
+  }
+
+  function setAmmo(ammo) {
+    safeStoreSet('Ammunition', ammo);
+  }
+
+  function currentAmmo() {
+    const v = safeStoreGet('Ammunition');
+    return v === null ? 100 : v;
+  }
+
+  function setGameFinished(value) {
+    safeStoreSet('gameFinished', Boolean(value));
+  }
+
+  function isGameFinished() {
+    return safeStoreGet('gameFinished') === true;
+  }
+  return {
+    currentScore,
+    getCurrentScore,
+    setAmmo,
+    currentAmmo,
+    setGameFinished,
+    isGameFinished,
+  };
+})();
+
+
+module.exports = Storage;
 
 
 /***/ }),
@@ -34554,7 +34554,7 @@ var Detector = {};
 module.exports = Detector;
 
 var SAT = __webpack_require__(155);
-var Pair = __webpack_require__(116);
+var Pair = __webpack_require__(115);
 var Bounds = __webpack_require__(37);
 
 (function() {
@@ -34959,7 +34959,7 @@ module.exports = {
     GetTilesWithinWorldXY: __webpack_require__(1387),
     HasTileAt: __webpack_require__(519),
     HasTileAtWorldXY: __webpack_require__(1388),
-    IsInLayerBounds: __webpack_require__(117),
+    IsInLayerBounds: __webpack_require__(116),
     PutTileAt: __webpack_require__(251),
     PutTileAtWorldXY: __webpack_require__(1389),
     PutTilesAt: __webpack_require__(1390),
@@ -34998,7 +34998,7 @@ module.exports = {
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var IsInLayerBounds = __webpack_require__(117);
+var IsInLayerBounds = __webpack_require__(116);
 
 /**
  * Gets a tile at the given tile coordinates from the given layer.
@@ -35210,7 +35210,7 @@ module.exports = GetNewValue;
 
 var Defaults = __webpack_require__(260);
 var GetAdvancedValue = __webpack_require__(14);
-var GetBoolean = __webpack_require__(100);
+var GetBoolean = __webpack_require__(99);
 var GetEaseFunction = __webpack_require__(76);
 var GetNewValue = __webpack_require__(160);
 var GetProps = __webpack_require__(541);
@@ -38250,7 +38250,7 @@ var PhaserMath = {
     Factorial: __webpack_require__(351),
     FloatBetween: __webpack_require__(130),
     FloorTo: __webpack_require__(799),
-    FromPercent: __webpack_require__(98),
+    FromPercent: __webpack_require__(97),
     GetSpeed: __webpack_require__(800),
     IsEven: __webpack_require__(801),
     IsEvenStrict: __webpack_require__(802),
@@ -43282,7 +43282,7 @@ module.exports = UppercaseFirst;
  */
 
 var Class = __webpack_require__(0);
-var Frame = __webpack_require__(108);
+var Frame = __webpack_require__(107);
 var TextureSource = __webpack_require__(413);
 
 var TEXTURE_MISSING_ERROR = 'Texture.frame missing: ';
@@ -44473,7 +44473,7 @@ var BlitterRender = __webpack_require__(984);
 var Bob = __webpack_require__(987);
 var Class = __webpack_require__(0);
 var Components = __webpack_require__(12);
-var Frame = __webpack_require__(108);
+var Frame = __webpack_require__(107);
 var GameObject = __webpack_require__(13);
 var List = __webpack_require__(141);
 
@@ -44773,7 +44773,7 @@ var ArrayUtils = __webpack_require__(201);
 var BlendModes = __webpack_require__(44);
 var Class = __webpack_require__(0);
 var Components = __webpack_require__(12);
-var Events = __webpack_require__(103);
+var Events = __webpack_require__(102);
 var GameObject = __webpack_require__(13);
 var Rectangle = __webpack_require__(11);
 var Render = __webpack_require__(988);
@@ -46343,7 +46343,7 @@ module.exports = DynamicBitmapText;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var BaseCamera = __webpack_require__(104);
+var BaseCamera = __webpack_require__(103);
 var Class = __webpack_require__(0);
 var Commands = __webpack_require__(211);
 var ComponentsAlpha = __webpack_require__(295);
@@ -46357,7 +46357,7 @@ var ComponentsScrollFactor = __webpack_require__(307);
 
 var TransformMatrix = __webpack_require__(32);
 
-var Ellipse = __webpack_require__(109);
+var Ellipse = __webpack_require__(108);
 var GameObject = __webpack_require__(13);
 var GetFastValue = __webpack_require__(2);
 var GetValue = __webpack_require__(6);
@@ -48462,12 +48462,12 @@ module.exports = ParticleEmitterManager;
  */
 
 var BlendModes = __webpack_require__(44);
-var Camera = __webpack_require__(104);
+var Camera = __webpack_require__(103);
 var CanvasPool = __webpack_require__(29);
 var Class = __webpack_require__(0);
 var Components = __webpack_require__(12);
 var CONST = __webpack_require__(38);
-var Frame = __webpack_require__(108);
+var Frame = __webpack_require__(107);
 var GameObject = __webpack_require__(13);
 var Render = __webpack_require__(1013);
 var Utils = __webpack_require__(10);
@@ -52915,7 +52915,7 @@ module.exports = TileSprite;
 var Class = __webpack_require__(0);
 var Clamp = __webpack_require__(19);
 var Components = __webpack_require__(12);
-var Events = __webpack_require__(103);
+var Events = __webpack_require__(102);
 var GameEvents = __webpack_require__(21);
 var GameObject = __webpack_require__(13);
 var SoundEvents = __webpack_require__(65);
@@ -58570,7 +58570,7 @@ var Class = __webpack_require__(0);
 var Components = __webpack_require__(153);
 var EventEmitter = __webpack_require__(9);
 var GetFastValue = __webpack_require__(2);
-var HasValue = __webpack_require__(114);
+var HasValue = __webpack_require__(113);
 var Vertices = __webpack_require__(31);
 
 /**
@@ -58897,7 +58897,7 @@ Matter.World = __webpack_require__(246);
 Matter.Detector = __webpack_require__(154);
 Matter.Grid = __webpack_require__(247);
 Matter.Pairs = __webpack_require__(248);
-Matter.Pair = __webpack_require__(116);
+Matter.Pair = __webpack_require__(115);
 Matter.Query = __webpack_require__(514);
 Matter.Resolver = __webpack_require__(249);
 Matter.SAT = __webpack_require__(155);
@@ -59448,7 +59448,7 @@ var Grid = {};
 
 module.exports = Grid;
 
-var Pair = __webpack_require__(116);
+var Pair = __webpack_require__(115);
 var Detector = __webpack_require__(154);
 var Common = __webpack_require__(20);
 
@@ -59775,7 +59775,7 @@ var Pairs = {};
 
 module.exports = Pairs;
 
-var Pair = __webpack_require__(116);
+var Pair = __webpack_require__(115);
 var Common = __webpack_require__(20);
 
 (function() {
@@ -60369,7 +60369,7 @@ module.exports = CalculateFacesAt;
  */
 
 var Tile = __webpack_require__(82);
-var IsInLayerBounds = __webpack_require__(117);
+var IsInLayerBounds = __webpack_require__(116);
 var CalculateFacesAt = __webpack_require__(250);
 var SetTileCollision = __webpack_require__(81);
 
@@ -60488,8 +60488,8 @@ module.exports = SetLayerCollisionIndex;
  */
 
 var Formats = __webpack_require__(35);
-var LayerData = __webpack_require__(118);
-var MapData = __webpack_require__(119);
+var LayerData = __webpack_require__(117);
+var MapData = __webpack_require__(118);
 var Tile = __webpack_require__(82);
 
 /**
@@ -60811,7 +60811,7 @@ module.exports = ParseObject;
  */
 
 var Formats = __webpack_require__(35);
-var MapData = __webpack_require__(119);
+var MapData = __webpack_require__(118);
 var Parse = __webpack_require__(521);
 var Tilemap = __webpack_require__(537);
 
@@ -61262,7 +61262,7 @@ var EventEmitter = __webpack_require__(9);
 var Events = __webpack_require__(262);
 var GameObjectCreator = __webpack_require__(16);
 var GameObjectFactory = __webpack_require__(5);
-var TWEEN_CONST = __webpack_require__(101);
+var TWEEN_CONST = __webpack_require__(100);
 var MATH_CONST = __webpack_require__(15);
 
 /**
@@ -63066,7 +63066,7 @@ var Matrix4 = __webpack_require__(190);
 var RandomXYZ = __webpack_require__(357);
 var RandomXYZW = __webpack_require__(358);
 var RotateVec3 = __webpack_require__(364);
-var Set = __webpack_require__(112);
+var Set = __webpack_require__(111);
 var Sprite3D = __webpack_require__(162);
 var Vector2 = __webpack_require__(3);
 var Vector3 = __webpack_require__(87);
@@ -64141,7 +64141,9 @@ module.exports = Camera;
 /* eslint-disable no-unused-vars */
 
 let ammunition = 100;
-const Storage = __webpack_require__(96);
+// В бесконечном режиме слова не расходуются: флаг ниже отключает учёт боезапаса
+// (Storage больше не используется для патронов — иначе счётчик показывал «NaN»).
+const INFINITE_AMMO = true;
 
 class Entity extends Phaser.GameObjects.Sprite {
   constructor(scene, x, y, key, type) {
@@ -64195,6 +64197,13 @@ class Player extends Entity {
     this.setData('hp', 3);
     this.setData('invulnUntil', 0);
 
+    // Плавное торможение: когда игрок отпускает джойстик/клавиши, герой
+    // плавно гасит скорость (раньше его «тянуло в центр» — update() обнулял
+    // velocity каждый кадр, и любое нулевое касание мгновенно стопорило).
+    this.body.setDamping(true);
+    this.body.setDrag(0.0008, 0.0008);
+    this.body.setMaxVelocity(this.getData('speed') * Math.SQRT2 + 1);
+
     this.play('sprPlayer');
   }
 
@@ -64224,22 +64233,27 @@ class Player extends Entity {
   // всю скорость: раньше moveUp() присваивал velocity.y и молча обнулял
   // velocity.x (и наоборот) — при удержании двух клавиш герой «клинит»:
   // последнее вызванное в кадре направление перетираает первое.
+  // Раньше все move*() ДЕЛАЛИ velocity += speed каждый кадр. Теперь, после
+  // отмены обнуления скорости в update(), такой «накопительный» режим дал бы
+  // вечный разгон до бесконечности — поэтому переключены на прямое
+  // присваивание целевой скорости; торможение при отпускании даёт damping
+  // (см. setDamping ниже в конструкторе).
   moveUp() {
-    this.body.velocity.y -= this.getData('speed');
+    this.body.velocity.y = -this.getData('speed');
   }
 
   moveDown() {
-    this.body.velocity.y += this.getData('speed');
+    this.body.velocity.y = this.getData('speed');
   }
 
   moveLeft() {
     this.setFlipX(true);
-    this.body.velocity.x -= this.getData('speed');
+    this.body.velocity.x = -this.getData('speed');
   }
 
   moveRight() {
     this.setFlipX(false);
-    this.body.velocity.x += this.getData('speed');
+    this.body.velocity.x = this.getData('speed');
   }
 
   // векторное движение (для тач-джойстика): dx, dy в диапазоне -1..1
@@ -64274,7 +64288,12 @@ class Player extends Entity {
   }
 
   update() {
-    this.body.setVelocity(0, 0);
+    // НИКАКОГО setVelocity(0,0): раньше эта строка обнуляла скорость героя
+    // каждый кадр ДО применения ввода, и при коротком «нулевом» вводе
+    // (например, джойстик вернулся в нейтраль между кадрами) герой мгновенно
+    // останавливался посреди экрана. Ускорение теперь задаётся напрямую
+    // velocity-присваиванием в move()/moveUp() и т.д., а торможение —
+    // через damping, поэтому разгон и остановка плавные.
 
     // центр спрайта не должен уходить за пределы экрана дальше, чем на половину габарита,
     // иначе герой окажется обрезанным (половина роста/ширины уйдёт за край)
@@ -64365,8 +64384,11 @@ class Player extends Entity {
         }
 
         this.setData('timerShootTick', 0);
-        ammunition--;
-        Storage.setAmmo(ammunition);
+        // Боезапас больше не расходуется: в бесконечном режиме слов нет
+        // «конца главы» из-за закончившихся патронов.
+        if (!INFINITE_AMMO) {
+          ammunition--;
+        }
       }
     }
   }
@@ -64969,7 +64991,7 @@ module.exports = {
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var ALIGN_CONST = __webpack_require__(97);
+var ALIGN_CONST = __webpack_require__(96);
 
 var AlignToMap = [];
 
@@ -65549,7 +65571,7 @@ module.exports = TopRight;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var ALIGN_CONST = __webpack_require__(97);
+var ALIGN_CONST = __webpack_require__(96);
 
 var AlignInMap = [];
 
@@ -66034,7 +66056,7 @@ module.exports = TopRight;
  */
 
 var CircumferencePoint = __webpack_require__(164);
-var FromPercent = __webpack_require__(98);
+var FromPercent = __webpack_require__(97);
 var MATH_CONST = __webpack_require__(15);
 var Point = __webpack_require__(4);
 
@@ -66078,7 +66100,7 @@ module.exports = GetPoint;
 
 var Circumference = __webpack_require__(294);
 var CircumferencePoint = __webpack_require__(164);
-var FromPercent = __webpack_require__(98);
+var FromPercent = __webpack_require__(97);
 var MATH_CONST = __webpack_require__(15);
 
 /**
@@ -71026,7 +71048,7 @@ module.exports = CacheManager;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var BaseCamera = __webpack_require__(104);
+var BaseCamera = __webpack_require__(103);
 var CanvasPool = __webpack_require__(29);
 var CenterOn = __webpack_require__(184);
 var Clamp = __webpack_require__(19);
@@ -75759,7 +75781,7 @@ var CameraEvents = __webpack_require__(41);
 var Class = __webpack_require__(0);
 var CONST = __webpack_require__(38);
 var GetBlendModes = __webpack_require__(369);
-var ScaleEvents = __webpack_require__(105);
+var ScaleEvents = __webpack_require__(104);
 var TransformMatrix = __webpack_require__(32);
 
 /**
@@ -76708,14 +76730,14 @@ module.exports = GetBlendModes;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var BaseCamera = __webpack_require__(104);
+var BaseCamera = __webpack_require__(103);
 var CameraEvents = __webpack_require__(41);
 var Class = __webpack_require__(0);
 var CONST = __webpack_require__(38);
 var GameEvents = __webpack_require__(21);
 var IsSizePowerOfTwo = __webpack_require__(131);
 var NOOP = __webpack_require__(1);
-var ScaleEvents = __webpack_require__(105);
+var ScaleEvents = __webpack_require__(104);
 var SpliceOne = __webpack_require__(88);
 var TextureEvents = __webpack_require__(133);
 var TransformMatrix = __webpack_require__(32);
@@ -86817,7 +86839,7 @@ module.exports = MouseManager;
 var Angle = __webpack_require__(344);
 var Class = __webpack_require__(0);
 var Distance = __webpack_require__(55);
-var FuzzyEqual = __webpack_require__(99);
+var FuzzyEqual = __webpack_require__(98);
 var SmoothStepInterpolation = __webpack_require__(354);
 var Vector2 = __webpack_require__(3);
 
@@ -89410,7 +89432,7 @@ module.exports = PluginManager;
 var CONST = __webpack_require__(195);
 var Class = __webpack_require__(0);
 var EventEmitter = __webpack_require__(9);
-var Events = __webpack_require__(105);
+var Events = __webpack_require__(104);
 var GameEvents = __webpack_require__(21);
 var GetInnerHeight = __webpack_require__(898);
 var GetTarget = __webpack_require__(398);
@@ -89418,7 +89440,7 @@ var GetScreenOrientation = __webpack_require__(393);
 var NOOP = __webpack_require__(1);
 var Rectangle = __webpack_require__(11);
 var Size = __webpack_require__(407);
-var SnapFloor = __webpack_require__(106);
+var SnapFloor = __webpack_require__(105);
 var Vector2 = __webpack_require__(3);
 
 /**
@@ -91126,7 +91148,7 @@ module.exports = ScaleManager;
 
 var Clamp = __webpack_require__(19);
 var Class = __webpack_require__(0);
-var SnapFloor = __webpack_require__(106);
+var SnapFloor = __webpack_require__(105);
 var Vector2 = __webpack_require__(3);
 
 /**
@@ -93842,7 +93864,7 @@ module.exports = Scene;
 
 var CONST = __webpack_require__(138);
 var GetValue = __webpack_require__(6);
-var Merge = __webpack_require__(107);
+var Merge = __webpack_require__(106);
 var InjectionMap = __webpack_require__(911);
 
 /**
@@ -99467,7 +99489,7 @@ module.exports = WebAudioSound;
 
 var AdInstance = __webpack_require__(943);
 var Class = __webpack_require__(0);
-var DataManager = __webpack_require__(102);
+var DataManager = __webpack_require__(101);
 var EventEmitter = __webpack_require__(9);
 var Leaderboard = __webpack_require__(944);
 var Product = __webpack_require__(946);
@@ -103326,7 +103348,7 @@ module.exports = Extern;
  */
 
 var CircumferencePoint = __webpack_require__(212);
-var FromPercent = __webpack_require__(98);
+var FromPercent = __webpack_require__(97);
 var MATH_CONST = __webpack_require__(15);
 var Point = __webpack_require__(4);
 
@@ -103370,7 +103392,7 @@ module.exports = GetPoint;
 
 var Circumference = __webpack_require__(435);
 var CircumferencePoint = __webpack_require__(212);
-var FromPercent = __webpack_require__(98);
+var FromPercent = __webpack_require__(97);
 var MATH_CONST = __webpack_require__(15);
 
 /**
@@ -104501,7 +104523,7 @@ var EmitterOp = __webpack_require__(1008);
 var GetFastValue = __webpack_require__(2);
 var GetRandom = __webpack_require__(203);
 var HasAny = __webpack_require__(442);
-var HasValue = __webpack_require__(114);
+var HasValue = __webpack_require__(113);
 var Particle = __webpack_require__(438);
 var RandomZone = __webpack_require__(443);
 var Rectangle = __webpack_require__(11);
@@ -107671,7 +107693,7 @@ module.exports = Curve;
 var Class = __webpack_require__(0);
 var Earcut = __webpack_require__(73);
 var EllipseRender = __webpack_require__(1040);
-var GeomEllipse = __webpack_require__(109);
+var GeomEllipse = __webpack_require__(108);
 var Shape = __webpack_require__(33);
 
 /**
@@ -114584,7 +114606,7 @@ module.exports = Factory;
 
 var Class = __webpack_require__(0);
 var Components = __webpack_require__(236);
-var Image = __webpack_require__(113);
+var Image = __webpack_require__(112);
 
 /**
  * @classdesc
@@ -114686,7 +114708,7 @@ var ArcadeSprite = __webpack_require__(151);
 var Class = __webpack_require__(0);
 var CONST = __webpack_require__(58);
 var GetFastValue = __webpack_require__(2);
-var Group = __webpack_require__(111);
+var Group = __webpack_require__(110);
 var IsPlainObject = __webpack_require__(7);
 
 /**
@@ -114971,7 +114993,7 @@ var ArcadeSprite = __webpack_require__(151);
 var Class = __webpack_require__(0);
 var CONST = __webpack_require__(58);
 var GetFastValue = __webpack_require__(2);
-var Group = __webpack_require__(111);
+var Group = __webpack_require__(110);
 var IsPlainObject = __webpack_require__(7);
 
 /**
@@ -115251,7 +115273,7 @@ var CONST = __webpack_require__(58);
 var DistanceBetween = __webpack_require__(55);
 var EventEmitter = __webpack_require__(9);
 var Events = __webpack_require__(237);
-var FuzzyEqual = __webpack_require__(99);
+var FuzzyEqual = __webpack_require__(98);
 var FuzzyGreaterThan = __webpack_require__(348);
 var FuzzyLessThan = __webpack_require__(349);
 var GetOverlapX = __webpack_require__(503);
@@ -115264,7 +115286,7 @@ var RTree = __webpack_require__(505);
 var SeparateTile = __webpack_require__(1320);
 var SeparateX = __webpack_require__(1325);
 var SeparateY = __webpack_require__(1326);
-var Set = __webpack_require__(112);
+var Set = __webpack_require__(111);
 var StaticBody = __webpack_require__(507);
 var TileIntersectsBody = __webpack_require__(506);
 var TransformMatrix = __webpack_require__(32);
@@ -124035,7 +124057,7 @@ var Class = __webpack_require__(0);
 var Components = __webpack_require__(153);
 var GameObject = __webpack_require__(13);
 var GetFastValue = __webpack_require__(2);
-var Image = __webpack_require__(113);
+var Image = __webpack_require__(112);
 var Pipeline = __webpack_require__(124);
 var Vector2 = __webpack_require__(3);
 
@@ -127432,7 +127454,7 @@ module.exports = ReplaceByIndex;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var IsInLayerBounds = __webpack_require__(117);
+var IsInLayerBounds = __webpack_require__(116);
 
 /**
  * Checks if there is a tile at the given location (in tile coordinates) in the given layer. Returns
@@ -127476,7 +127498,7 @@ module.exports = HasTileAt;
  */
 
 var Tile = __webpack_require__(82);
-var IsInLayerBounds = __webpack_require__(117);
+var IsInLayerBounds = __webpack_require__(116);
 var CalculateFacesAt = __webpack_require__(250);
 
 /**
@@ -127657,7 +127679,7 @@ module.exports = ParseCSV;
  */
 
 var Formats = __webpack_require__(35);
-var MapData = __webpack_require__(119);
+var MapData = __webpack_require__(118);
 var ParseTileLayers = __webpack_require__(524);
 var ParseImageLayers = __webpack_require__(526);
 var ParseTilesets = __webpack_require__(527);
@@ -127736,7 +127758,7 @@ module.exports = ParseJSONTiled;
 
 var Base64Decode = __webpack_require__(525);
 var GetFastValue = __webpack_require__(2);
-var LayerData = __webpack_require__(118);
+var LayerData = __webpack_require__(117);
 var ParseGID = __webpack_require__(254);
 var Tile = __webpack_require__(82);
 var CreateGroupLayer = __webpack_require__(255);
@@ -128123,7 +128145,7 @@ module.exports = ParseImageLayers;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var Tileset = __webpack_require__(120);
+var Tileset = __webpack_require__(119);
 var ImageCollection = __webpack_require__(528);
 var ParseObject = __webpack_require__(256);
 
@@ -128464,7 +128486,7 @@ module.exports = ImageCollection;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var HasValue = __webpack_require__(114);
+var HasValue = __webpack_require__(113);
 
 /**
  * Returns a new object that only contains the `keys` that were found on the object provided.
@@ -128729,7 +128751,7 @@ module.exports = ObjectLayer;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var Tileset = __webpack_require__(120);
+var Tileset = __webpack_require__(119);
 
 /**
  * Master list of tiles -> x, y, index in tileset.
@@ -128897,7 +128919,7 @@ module.exports = AssignTileProperties;
  */
 
 var Formats = __webpack_require__(35);
-var MapData = __webpack_require__(119);
+var MapData = __webpack_require__(118);
 var ParseTileLayers = __webpack_require__(535);
 var ParseTilesets = __webpack_require__(536);
 
@@ -128963,7 +128985,7 @@ module.exports = ParseWeltmeister;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var LayerData = __webpack_require__(118);
+var LayerData = __webpack_require__(117);
 var Tile = __webpack_require__(82);
 
 /**
@@ -129049,7 +129071,7 @@ module.exports = ParseTileLayers;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var Tileset = __webpack_require__(120);
+var Tileset = __webpack_require__(119);
 
 /**
  * Tilesets and Image Collections
@@ -129105,13 +129127,13 @@ var DegToRad = __webpack_require__(40);
 var DynamicTilemapLayer = __webpack_require__(538);
 var Extend = __webpack_require__(18);
 var Formats = __webpack_require__(35);
-var LayerData = __webpack_require__(118);
+var LayerData = __webpack_require__(117);
 var Rotate = __webpack_require__(359);
 var SpliceOne = __webpack_require__(88);
 var StaticTilemapLayer = __webpack_require__(539);
 var Tile = __webpack_require__(82);
 var TilemapComponents = __webpack_require__(156);
-var Tileset = __webpack_require__(120);
+var Tileset = __webpack_require__(119);
 
 /**
  * @callback TilemapFilterCallback
@@ -134896,7 +134918,7 @@ module.exports = GetTweens;
 
 var Defaults = __webpack_require__(260);
 var GetAdvancedValue = __webpack_require__(14);
-var GetBoolean = __webpack_require__(100);
+var GetBoolean = __webpack_require__(99);
 var GetEaseFunction = __webpack_require__(76);
 var GetNewValue = __webpack_require__(160);
 var GetValue = __webpack_require__(6);
@@ -135273,7 +135295,7 @@ module.exports = StaggerBuilder;
 var Clone = __webpack_require__(74);
 var Defaults = __webpack_require__(260);
 var GetAdvancedValue = __webpack_require__(14);
-var GetBoolean = __webpack_require__(100);
+var GetBoolean = __webpack_require__(99);
 var GetEaseFunction = __webpack_require__(76);
 var GetNewValue = __webpack_require__(160);
 var GetTargets = __webpack_require__(258);
@@ -135426,7 +135448,7 @@ var Class = __webpack_require__(0);
 var EventEmitter = __webpack_require__(9);
 var Events = __webpack_require__(262);
 var TweenBuilder = __webpack_require__(161);
-var TWEEN_CONST = __webpack_require__(101);
+var TWEEN_CONST = __webpack_require__(100);
 
 /**
  * @classdesc
@@ -137469,7 +137491,7 @@ module.exports = GetLast;
  */
 
 var AlignIn = __webpack_require__(281);
-var CONST = __webpack_require__(97);
+var CONST = __webpack_require__(96);
 var GetFastValue = __webpack_require__(2);
 var NOOP = __webpack_require__(1);
 var Zone = __webpack_require__(121);
@@ -139737,9 +139759,9 @@ module.exports = Origin;
  */
 
 var DegToRad = __webpack_require__(40);
-var GetBoolean = __webpack_require__(100);
+var GetBoolean = __webpack_require__(99);
 var GetValue = __webpack_require__(6);
-var TWEEN_CONST = __webpack_require__(101);
+var TWEEN_CONST = __webpack_require__(100);
 var Vector2 = __webpack_require__(3);
 
 /**
@@ -144462,7 +144484,7 @@ module.exports = SmoothedKeyControl;
 module.exports = {
 
     Camera: __webpack_require__(320),
-    BaseCamera: __webpack_require__(104),
+    BaseCamera: __webpack_require__(103),
     CameraManager: __webpack_require__(735),
     Effects: __webpack_require__(328),
     Events: __webpack_require__(41)
@@ -148193,7 +148215,7 @@ var Class = __webpack_require__(0);
 var GetFastValue = __webpack_require__(2);
 var PluginCache = __webpack_require__(22);
 var RectangleContains = __webpack_require__(54);
-var ScaleEvents = __webpack_require__(105);
+var ScaleEvents = __webpack_require__(104);
 var SceneEvents = __webpack_require__(23);
 
 /**
@@ -150852,7 +150874,7 @@ module.exports = {
 module.exports = {
 
     Ceil: __webpack_require__(784),
-    Equal: __webpack_require__(99),
+    Equal: __webpack_require__(98),
     Floor: __webpack_require__(785),
     GreaterThan: __webpack_require__(348),
     LessThan: __webpack_require__(349)
@@ -151193,7 +151215,7 @@ module.exports = IsValuePowerOfTwo;
 module.exports = {
 
     Ceil: __webpack_require__(356),
-    Floor: __webpack_require__(106),
+    Floor: __webpack_require__(105),
     To: __webpack_require__(794)
 
 };
@@ -153851,7 +153873,7 @@ module.exports = MoveTo;
 
 module.exports = {
 
-    DataManager: __webpack_require__(102),
+    DataManager: __webpack_require__(101),
     DataManagerPlugin: __webpack_require__(829),
     Events: __webpack_require__(311)
 
@@ -153869,7 +153891,7 @@ module.exports = {
  */
 
 var Class = __webpack_require__(0);
-var DataManager = __webpack_require__(102);
+var DataManager = __webpack_require__(101);
 var PluginCache = __webpack_require__(22);
 var SceneEvents = __webpack_require__(23);
 
@@ -154021,7 +154043,7 @@ module.exports = {
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var CONST = __webpack_require__(97);
+var CONST = __webpack_require__(96);
 var Extend = __webpack_require__(18);
 
 /**
@@ -154895,7 +154917,7 @@ var Class = __webpack_require__(0);
 var Config = __webpack_require__(341);
 var CreateDOMContainer = __webpack_require__(851);
 var CreateRenderer = __webpack_require__(365);
-var DataManager = __webpack_require__(102);
+var DataManager = __webpack_require__(101);
 var DebugHeader = __webpack_require__(377);
 var Device = __webpack_require__(342);
 var DOMContentLoaded = __webpack_require__(392);
@@ -159693,7 +159715,7 @@ module.exports = Purchase;
 
 var GameObjects = {
 
-    Events: __webpack_require__(103),
+    Events: __webpack_require__(102),
 
     DisplayList: __webpack_require__(949),
     GameObjectCreator: __webpack_require__(16),
@@ -159712,8 +159734,8 @@ var GameObjects = {
     DynamicBitmapText: __webpack_require__(209),
     Extern: __webpack_require__(432),
     Graphics: __webpack_require__(210),
-    Group: __webpack_require__(111),
-    Image: __webpack_require__(113),
+    Group: __webpack_require__(110),
+    Image: __webpack_require__(112),
     Particles: __webpack_require__(1007),
     PathFollower: __webpack_require__(444),
     RenderTexture: __webpack_require__(214),
@@ -162975,7 +162997,7 @@ module.exports = BlitterCanvasRenderer;
  */
 
 var Class = __webpack_require__(0);
-var Frame = __webpack_require__(108);
+var Frame = __webpack_require__(107);
 
 /**
  * @classdesc
@@ -168201,7 +168223,7 @@ module.exports = {
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var FillPathWebGL = __webpack_require__(115);
+var FillPathWebGL = __webpack_require__(114);
 var StrokePathWebGL = __webpack_require__(77);
 
 /**
@@ -168386,7 +168408,7 @@ module.exports = {
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var FillPathWebGL = __webpack_require__(115);
+var FillPathWebGL = __webpack_require__(114);
 var StrokePathWebGL = __webpack_require__(77);
 
 /**
@@ -168583,7 +168605,7 @@ module.exports = {
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var FillPathWebGL = __webpack_require__(115);
+var FillPathWebGL = __webpack_require__(114);
 var StrokePathWebGL = __webpack_require__(77);
 
 /**
@@ -170016,7 +170038,7 @@ module.exports = {
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var FillPathWebGL = __webpack_require__(115);
+var FillPathWebGL = __webpack_require__(114);
 var StrokePathWebGL = __webpack_require__(77);
 
 /**
@@ -170407,7 +170429,7 @@ module.exports = {
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var FillPathWebGL = __webpack_require__(115);
+var FillPathWebGL = __webpack_require__(114);
 var StrokePathWebGL = __webpack_require__(77);
 
 /**
@@ -171095,7 +171117,7 @@ GameObjectFactory.register('graphics', function (config)
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var Group = __webpack_require__(111);
+var Group = __webpack_require__(110);
 var GameObjectFactory = __webpack_require__(5);
 
 /**
@@ -171127,7 +171149,7 @@ GameObjectFactory.register('group', function (children, config)
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var Image = __webpack_require__(113);
+var Image = __webpack_require__(112);
 var GameObjectFactory = __webpack_require__(5);
 
 /**
@@ -172450,7 +172472,7 @@ GameObjectCreator.register('graphics', function (config, addToScene)
  */
 
 var GameObjectCreator = __webpack_require__(16);
-var Group = __webpack_require__(111);
+var Group = __webpack_require__(110);
 
 /**
  * Creates a new Group Game Object and returns it.
@@ -172485,7 +172507,7 @@ GameObjectCreator.register('group', function (config)
 var BuildGameObject = __webpack_require__(28);
 var GameObjectCreator = __webpack_require__(16);
 var GetAdvancedValue = __webpack_require__(14);
-var Image = __webpack_require__(113);
+var Image = __webpack_require__(112);
 
 /**
  * Creates a new Image Game Object and returns it.
@@ -174093,13 +174115,13 @@ module.exports = OffsetPoint;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var Ellipse = __webpack_require__(109);
+var Ellipse = __webpack_require__(108);
 
 Ellipse.Area = __webpack_require__(1135);
 Ellipse.Circumference = __webpack_require__(435);
 Ellipse.CircumferencePoint = __webpack_require__(212);
 Ellipse.Clone = __webpack_require__(1136);
-Ellipse.Contains = __webpack_require__(110);
+Ellipse.Contains = __webpack_require__(109);
 Ellipse.ContainsPoint = __webpack_require__(1137);
 Ellipse.ContainsRect = __webpack_require__(1138);
 Ellipse.CopyFrom = __webpack_require__(1139);
@@ -174158,7 +174180,7 @@ module.exports = Area;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var Ellipse = __webpack_require__(109);
+var Ellipse = __webpack_require__(108);
 
 /**
  * Creates a new Ellipse instance based on the values contained in the given source.
@@ -174188,7 +174210,7 @@ module.exports = Clone;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var Contains = __webpack_require__(110);
+var Contains = __webpack_require__(109);
 
 /**
  * Check to see if the Ellipse contains the given Point object.
@@ -174219,7 +174241,7 @@ module.exports = ContainsPoint;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var Contains = __webpack_require__(110);
+var Contains = __webpack_require__(109);
 
 /**
  * Check to see if the Ellipse contains all four points of the given Rectangle object.
@@ -179312,8 +179334,8 @@ var CONST = __webpack_require__(197);
 var CreateInteractiveObject = __webpack_require__(484);
 var CreatePixelPerfectHandler = __webpack_require__(1249);
 var DistanceBetween = __webpack_require__(55);
-var Ellipse = __webpack_require__(109);
-var EllipseContains = __webpack_require__(110);
+var Ellipse = __webpack_require__(108);
+var EllipseContains = __webpack_require__(109);
 var Events = __webpack_require__(56);
 var EventEmitter = __webpack_require__(9);
 var GetFastValue = __webpack_require__(2);
@@ -182798,7 +182820,7 @@ var Key = __webpack_require__(488);
 var KeyCodes = __webpack_require__(137);
 var KeyCombo = __webpack_require__(489);
 var KeyMap = __webpack_require__(1262);
-var SnapFloor = __webpack_require__(106);
+var SnapFloor = __webpack_require__(105);
 
 /**
  * @classdesc
@@ -189643,7 +189665,7 @@ module.exports = VideoFile;
 
 var Class = __webpack_require__(0);
 var CONST = __webpack_require__(17);
-var CustomSet = __webpack_require__(112);
+var CustomSet = __webpack_require__(111);
 var EventEmitter = __webpack_require__(9);
 var Events = __webpack_require__(90);
 var FileTypesManager = __webpack_require__(8);
@@ -190809,7 +190831,7 @@ var DistanceBetween = __webpack_require__(55);
 var DistanceSquared = __webpack_require__(347);
 var Factory = __webpack_require__(495);
 var GetFastValue = __webpack_require__(2);
-var Merge = __webpack_require__(107);
+var Merge = __webpack_require__(106);
 var OverlapCirc = __webpack_require__(1310);
 var OverlapRect = __webpack_require__(499);
 var PluginCache = __webpack_require__(22);
@@ -194342,7 +194364,7 @@ module.exports = Sensor;
 
 var Bodies = __webpack_require__(43);
 var Body = __webpack_require__(25);
-var FuzzyEquals = __webpack_require__(99);
+var FuzzyEquals = __webpack_require__(98);
 var GetFastValue = __webpack_require__(2);
 var PhysicsEditorParser = __webpack_require__(240);
 var PhysicsJSONParser = __webpack_require__(241);
@@ -195714,7 +195736,7 @@ var Constraint = __webpack_require__(80);
 var Detector = __webpack_require__(154);
 var Events = __webpack_require__(242);
 var InputEvents = __webpack_require__(56);
-var Merge = __webpack_require__(107);
+var Merge = __webpack_require__(106);
 var Sleeping = __webpack_require__(94);
 var Vector2 = __webpack_require__(3);
 var Vertices = __webpack_require__(31);
@@ -196194,7 +196216,7 @@ var Common = __webpack_require__(20);
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var ALIGN_CONST = __webpack_require__(97);
+var ALIGN_CONST = __webpack_require__(96);
 var Axes = __webpack_require__(152);
 var Bodies = __webpack_require__(43);
 var Body = __webpack_require__(25);
@@ -196214,8 +196236,8 @@ var MatterAttractors = __webpack_require__(1360);
 var MatterCollisionEvents = __webpack_require__(1361);
 var MatterLib = __webpack_require__(513);
 var MatterWrap = __webpack_require__(1362);
-var Merge = __webpack_require__(107);
-var Pair = __webpack_require__(116);
+var Merge = __webpack_require__(106);
+var Pair = __webpack_require__(115);
 var Pairs = __webpack_require__(248);
 var Plugin = __webpack_require__(245);
 var PluginCache = __webpack_require__(22);
@@ -198431,7 +198453,7 @@ var CONST = __webpack_require__(195);
 var Scale = {
 
     Center: __webpack_require__(394),
-    Events: __webpack_require__(105),
+    Events: __webpack_require__(104),
     Orientation: __webpack_require__(395),
     ScaleManager: __webpack_require__(406),
     ScaleModes: __webpack_require__(396),
@@ -199510,7 +199532,7 @@ module.exports = {
     Map: __webpack_require__(178),
     ProcessQueue: __webpack_require__(204),
     RTree: __webpack_require__(505),
-    Set: __webpack_require__(112),
+    Set: __webpack_require__(111),
     Size: __webpack_require__(407)
 
 };
@@ -199556,7 +199578,7 @@ var Textures = {
     CanvasTexture: __webpack_require__(412),
     Events: __webpack_require__(133),
     FilterMode: FilterMode,
-    Frame: __webpack_require__(108),
+    Frame: __webpack_require__(107),
     Parsers: __webpack_require__(414),
     Texture: __webpack_require__(200),
     TextureManager: __webpack_require__(411),
@@ -199639,10 +199661,10 @@ module.exports = {
     Tilemap: __webpack_require__(537),
     TilemapCreator: __webpack_require__(1415),
     TilemapFactory: __webpack_require__(1416),
-    Tileset: __webpack_require__(120),
+    Tileset: __webpack_require__(119),
 
-    LayerData: __webpack_require__(118),
-    MapData: __webpack_require__(119),
+    LayerData: __webpack_require__(117),
+    MapData: __webpack_require__(118),
     ObjectLayer: __webpack_require__(531),
 
     DynamicTilemapLayer: __webpack_require__(538),
@@ -199811,7 +199833,7 @@ module.exports = CreateFromTiles;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var SnapFloor = __webpack_require__(106);
+var SnapFloor = __webpack_require__(105);
 var SnapCeil = __webpack_require__(356);
 
 /**
@@ -200988,7 +201010,7 @@ module.exports = SetCollisionByExclusion;
 
 var SetTileCollision = __webpack_require__(81);
 var CalculateFacesWithin = __webpack_require__(59);
-var HasValue = __webpack_require__(114);
+var HasValue = __webpack_require__(113);
 
 /**
  * Sets collision on the tiles within a layer by checking tile properties. If a tile has a property
@@ -202610,7 +202632,7 @@ module.exports = Clock;
  * @license      {@link https://opensource.org/licenses/MIT|MIT License}
  */
 
-var CONST = __webpack_require__(101);
+var CONST = __webpack_require__(100);
 var Extend = __webpack_require__(18);
 
 /**
@@ -202651,7 +202673,7 @@ module.exports = Tweens;
 
 module.exports = {
 
-    GetBoolean: __webpack_require__(100),
+    GetBoolean: __webpack_require__(99),
     GetEaseFunction: __webpack_require__(76),
     GetNewValue: __webpack_require__(160),
     GetProps: __webpack_require__(541),
@@ -203277,7 +203299,7 @@ var PluginCache = __webpack_require__(22);
 var SceneEvents = __webpack_require__(23);
 var StaggerBuilder = __webpack_require__(544);
 var TimelineBuilder = __webpack_require__(545);
-var TWEEN_CONST = __webpack_require__(101);
+var TWEEN_CONST = __webpack_require__(100);
 var TweenBuilder = __webpack_require__(161);
 
 /**
@@ -204160,9 +204182,9 @@ module.exports = {
     GetValue: __webpack_require__(6),
     HasAll: __webpack_require__(1441),
     HasAny: __webpack_require__(442),
-    HasValue: __webpack_require__(114),
+    HasValue: __webpack_require__(113),
     IsPlainObject: __webpack_require__(7),
-    Merge: __webpack_require__(107),
+    Merge: __webpack_require__(106),
     MergeRight: __webpack_require__(1442),
     Pick: __webpack_require__(529),
     SetValue: __webpack_require__(462)
@@ -205302,7 +205324,7 @@ window.SFX = (() => {
 
 
 
-const Storage = __webpack_require__(96);
+const Storage = __webpack_require__(120);
 const TouchControls = __webpack_require__(266).default;
 
 let timer;
@@ -205327,12 +205349,11 @@ class SceneMain extends Phaser.Scene {
 
   create() {
     Storage.currentScore(zero);
-    Storage.setAmmo(ammunition);
 
     this.bg = this.add.image(512, 320, 'deepspace');
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
-    stageText = this.add.text(250, 16, 'Глава 1', {
+    stageText = this.add.text(250, 16, 'Бесконечный режим', {
       fontSize: '32px',
       fill: '#fff',
     });
@@ -205452,21 +205473,29 @@ class SceneMain extends Phaser.Scene {
     this.enemyLasers = this.add.group();
     this.playerLasers = this.add.group();
 
-    this.time.addEvent({
-      delay: 2500,
-      callback() {
+    // СПАВН ВРАГОВ. Замыкание на scene гарантирует правильный контекст даже
+    // если Phaser вызовет колбэк таймера с другим this (в разных версиях
+    // поведение callbackScope различается — раньше из-за этого во «второй
+    // главе» спавн падал с TypeError и враги не появлялись).
+    const scene = this;
+    let spawnDelay = 1800;
+    const scheduleSpawn = () => {
+      scene.time.delayedCall(spawnDelay, () => {
+        if (!scene.scene.isActive()) return;
         // гопник появляется у левого или правого края и идёт вбок
         const fromLeft = Phaser.Math.Between(0, 1) === 0;
         const dir = fromLeft ? 1 : -1;
-        const x = fromLeft ? 0 : this.game.config.width;
-        const y = Phaser.Math.Between(120, this.game.config.height - 120);
-        const enemy = new __WEBPACK_IMPORTED_MODULE_1__entities__["a" /* GunShip */](this, x, y, dir);
+        const x = fromLeft ? 0 : scene.game.config.width;
+        const y = Phaser.Math.Between(120, scene.game.config.height - 120);
+        const enemy = new __WEBPACK_IMPORTED_MODULE_1__entities__["a" /* GunShip */](scene, x, y, dir);
         enemy.setScale(Phaser.Math.Between(10, 12) * 0.1);
-        this.enemies.add(enemy);
-      },
-      callbackScope: this,
-      loop: true,
-    });
+        scene.enemies.add(enemy);
+        // лёгкая прогрессия: интервал сокращается до минимума 900 мс
+        if (spawnDelay > 900) spawnDelay -= 25;
+        scheduleSpawn();
+      });
+    };
+    scheduleSpawn();
 
     this.physics.add.collider(this.playerLasers, this.enemies, (playerLaser, enemy) => {
       if (enemy) {
@@ -205584,19 +205613,9 @@ class SceneMain extends Phaser.Scene {
       }
     });
 
-    const nextScene = () => this.scene.start('SceneScores');
-    const secondStage = () => this.scene.start('SecondStage');
-
-    sec = 60;
-    // Add timer
-    timer = setInterval(() => {
-      timerText.setText(`Время: ${sec}`);
-      sec--;
-      if (sec < 0) {
-        secondStage();
-        stopTimer();
-      }
-    }, 1000);
+    // БЕСКОНЕЧНЫЙ РЕЖИМ: таймера главы больше нет — игра идёт, пока жив герой.
+    // Главы 2/3 временно отключены (будут переделаны с другими персонажами).
+    timerText.setText('Режим: бесконечный');
 
     function stopTimer() {
       clearInterval(timer);
@@ -205616,36 +205635,39 @@ class SceneMain extends Phaser.Scene {
 
 
   update() {
-    const currentAmmo = Storage.currentAmmo();
-
-        scoreText.setText(`Читатели: ${score}`);
-        ammoText.setText(`Слова: ${currentAmmo}`);
+    scoreText.setText(`Читатели: ${score}`);
+        // Боезапас больше не ограничивает игру — слова бесконечны.
+        ammoText.setText('Слова: ∞');
         hpText.setText(`Жизни: ${this.player.getData('hp')}/${this.player.getData('maxHp')}`);
-
-    if (currentAmmo < zero) {
-      this.player.onDestroy();
-      clearInterval(timer);
-    }
 
     if (!this.player.getData('isDead') && !this.player.getData('dying')) {
           this.player.update();
           // тач-джойстик имеет приоритет над клавиатурой
           const touchMove = this.touchControls.getMove();
           const gk = window.__GAME_KEYS__ || { w: false, s: false, a: false, d: false, space: false };
+          let moving = false;
           if (touchMove.x !== 0 || touchMove.y !== 0) {
             this.player.move(touchMove.x, touchMove.y);
+            moving = true;
           } else {
             if (this.keyW.isDown || gk.w) {
               this.player.moveUp();
+              moving = true;
             } else if (this.keyS.isDown || gk.s) {
               this.player.moveDown();
+              moving = true;
             }
             if (this.keyA.isDown || gk.a) {
               this.player.moveLeft();
+              moving = true;
             } else if (this.keyD.isDown || gk.d) {
               this.player.moveRight();
+              moving = true;
             }
           }
+          // Если в этом кадре нет ввода, скорость НЕ обнуляется принудительно —
+          // damping сам плавно погасит движение. Раньше из-за этого «тянуло в центр».
+          void moving;
 
           const firing = this.keySpace.isDown || gk.space || this.touchControls.isFiring()
             || this.mouseFireDown
@@ -205714,7 +205736,7 @@ class SceneMain extends Phaser.Scene {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_phaser__ = __webpack_require__(60);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_phaser___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_phaser__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__modules_storage__ = __webpack_require__(96);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__modules_storage__ = __webpack_require__(120);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__modules_storage___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__modules_storage__);
 /* eslint-disable no-undef */
 
@@ -205791,7 +205813,9 @@ class SceneMainMenu extends Phaser.Scene {
           <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.5;">
             <b>Управление:</b><br>
             На клавиатуре — [W][A][S][D] ходьба, [ПРОБЕЛ] — слово.<br>
-            На телефоне — джойстик слева, пламенная речь справа.
+            На телефоне — джойстик слева, кнопка «ОГОНЬ» справа.<br>
+            Режим бесконечный: слова не кончаются, глава не заканчивается —<br>
+            играй, пока жив. Смерть возвращает в меню.
           </p>
           <div style="text-align:center;">
             <button id="hintClose" style="
@@ -205834,7 +205858,7 @@ class SceneMainMenu extends Phaser.Scene {
 
 
 
-const Storage = __webpack_require__(96);
+const Storage = __webpack_require__(120);
 
 class SceneScores extends Phaser.Scene {
   constructor() {
@@ -205929,7 +205953,7 @@ class SceneScores extends Phaser.Scene {
 
 
 
-const Storage = __webpack_require__(96);
+const Storage = __webpack_require__(120);
 const TouchControls = __webpack_require__(266).default;
 
 let timer;
@@ -206252,7 +206276,7 @@ class SecondStage extends Phaser.Scene {
 
 
 
-const Storage = __webpack_require__(96);
+const Storage = __webpack_require__(120);
 const TouchControls = __webpack_require__(266).default;
 
 let timer;
