@@ -39,12 +39,11 @@ export default class SceneMain extends Phaser.Scene {
 
   create() {
     Storage.currentScore(zero);
-    Storage.setAmmo(ammunition);
 
     this.bg = this.add.image(512, 320, 'deepspace');
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
-    stageText = this.add.text(250, 16, 'Глава 1', {
+    stageText = this.add.text(250, 16, 'Бесконечный режим', {
       fontSize: '32px',
       fill: '#fff',
     });
@@ -164,21 +163,29 @@ export default class SceneMain extends Phaser.Scene {
     this.enemyLasers = this.add.group();
     this.playerLasers = this.add.group();
 
-    this.time.addEvent({
-      delay: 2500,
-      callback() {
+    // СПАВН ВРАГОВ. Замыкание на scene гарантирует правильный контекст даже
+    // если Phaser вызовет колбэк таймера с другим this (в разных версиях
+    // поведение callbackScope различается — раньше из-за этого во «второй
+    // главе» спавн падал с TypeError и враги не появлялись).
+    const scene = this;
+    let spawnDelay = 1800;
+    const scheduleSpawn = () => {
+      scene.time.delayedCall(spawnDelay, () => {
+        if (!scene.scene.isActive()) return;
         // гопник появляется у левого или правого края и идёт вбок
         const fromLeft = Phaser.Math.Between(0, 1) === 0;
         const dir = fromLeft ? 1 : -1;
-        const x = fromLeft ? 0 : this.game.config.width;
-        const y = Phaser.Math.Between(120, this.game.config.height - 120);
-        const enemy = new GunShip(this, x, y, dir);
+        const x = fromLeft ? 0 : scene.game.config.width;
+        const y = Phaser.Math.Between(120, scene.game.config.height - 120);
+        const enemy = new GunShip(scene, x, y, dir);
         enemy.setScale(Phaser.Math.Between(10, 12) * 0.1);
-        this.enemies.add(enemy);
-      },
-      callbackScope: this,
-      loop: true,
-    });
+        scene.enemies.add(enemy);
+        // лёгкая прогрессия: интервал сокращается до минимума 900 мс
+        if (spawnDelay > 900) spawnDelay -= 25;
+        scheduleSpawn();
+      });
+    };
+    scheduleSpawn();
 
     this.physics.add.collider(this.playerLasers, this.enemies, (playerLaser, enemy) => {
       if (enemy) {
@@ -296,19 +303,9 @@ export default class SceneMain extends Phaser.Scene {
       }
     });
 
-    const nextScene = () => this.scene.start('SceneScores');
-    const secondStage = () => this.scene.start('SecondStage');
-
-    sec = 60;
-    // Add timer
-    timer = setInterval(() => {
-      timerText.setText(`Время: ${sec}`);
-      sec--;
-      if (sec < 0) {
-        secondStage();
-        stopTimer();
-      }
-    }, 1000);
+    // БЕСКОНЕЧНЫЙ РЕЖИМ: таймера главы больше нет — игра идёт, пока жив герой.
+    // Главы 2/3 временно отключены (будут переделаны с другими персонажами).
+    timerText.setText('Режим: бесконечный');
 
     function stopTimer() {
       clearInterval(timer);
@@ -328,36 +325,39 @@ export default class SceneMain extends Phaser.Scene {
 
 
   update() {
-    const currentAmmo = Storage.currentAmmo();
-
-        scoreText.setText(`Читатели: ${score}`);
-        ammoText.setText(`Слова: ${currentAmmo}`);
+    scoreText.setText(`Читатели: ${score}`);
+        // Боезапас больше не ограничивает игру — слова бесконечны.
+        ammoText.setText('Слова: ∞');
         hpText.setText(`Жизни: ${this.player.getData('hp')}/${this.player.getData('maxHp')}`);
-
-    if (currentAmmo < zero) {
-      this.player.onDestroy();
-      clearInterval(timer);
-    }
 
     if (!this.player.getData('isDead') && !this.player.getData('dying')) {
           this.player.update();
           // тач-джойстик имеет приоритет над клавиатурой
           const touchMove = this.touchControls.getMove();
           const gk = window.__GAME_KEYS__ || { w: false, s: false, a: false, d: false, space: false };
+          let moving = false;
           if (touchMove.x !== 0 || touchMove.y !== 0) {
             this.player.move(touchMove.x, touchMove.y);
+            moving = true;
           } else {
             if (this.keyW.isDown || gk.w) {
               this.player.moveUp();
+              moving = true;
             } else if (this.keyS.isDown || gk.s) {
               this.player.moveDown();
+              moving = true;
             }
             if (this.keyA.isDown || gk.a) {
               this.player.moveLeft();
+              moving = true;
             } else if (this.keyD.isDown || gk.d) {
               this.player.moveRight();
+              moving = true;
             }
           }
+          // Если в этом кадре нет ввода, скорость НЕ обнуляется принудительно —
+          // damping сам плавно погасит движение. Раньше из-за этого «тянуло в центр».
+          void moving;
 
           const firing = this.keySpace.isDown || gk.space || this.touchControls.isFiring()
             || this.mouseFireDown
