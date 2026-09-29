@@ -12,9 +12,34 @@ import SecondStage from './Scenes/SecondStage';
 import ThirdStage from './Scenes/ThirdStage';
 import SceneIntro from './Scenes/SceneIntro';
 
+// Стрелки и пробел не должны прокручивать страницу под игрой.
+window.addEventListener('keydown', (e) => {
+  const block = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Spacebar'];
+  if (block.indexOf(e.key) !== -1 || e.code === 'Space') {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+// Правая кнопка мыши стреляет — контекстное меню браузера (и «кружок»-эффект) убираем.
+const killCtxMenu = (e) => { e.preventDefault(); return false; };
+document.addEventListener('contextmenu', killCtxMenu);
+window.addEventListener('load', () => {
+  if (window.game && window.game.canvas) {
+    window.game.canvas.addEventListener('contextmenu', killCtxMenu);
+  }
+});
+
+// Единый контейнер для canvas'а — создаём сами, чтобы не зависеть от вёрстки.
+if (!document.getElementById('game-container')) {
+  const c = document.createElement('div');
+  c.id = 'game-container';
+  document.body.appendChild(c);
+}
+
 class Game extends Phaser.Game {
   constructor() {
-    super(config);
+    super(Object.assign({}, config, { parent: 'game-container' }));
+    this.input.mouse.disableContextMenu();
     this.scene.add('SceneIntro', SceneIntro);
     this.scene.add('ThirdStage', ThirdStage);
     this.scene.add('SecondStage', SecondStage);

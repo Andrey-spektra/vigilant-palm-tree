@@ -97,11 +97,27 @@ export default class SceneMain extends Phaser.Scene {
 
         this.touchControls = new TouchControls(this);
 
-    this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.keyW = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.W, Phaser.Input.Keyboard.KeyCodes.UP]);
+    this.keyS = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.S, Phaser.Input.Keyboard.KeyCodes.DOWN]);
+    this.keyA = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.LEFT]);
+    this.keyD = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.D, Phaser.Input.Keyboard.KeyCodes.RIGHT]);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
+    this.mouseFireDown = false;
+    this.mouseFireAt = 0;
+    this.input.on('pointerdown', (p) => {
+      if (p.rightButtonDown() || p.leftButtonDown()) {
+        this.mouseFireDown = true;
+        this.mouseFireAt = this.time.now;
+      }
+    });
+    this.input.on('pointerup', (p) => {
+      if (!p.rightButtonDown() && !p.leftButtonDown()) this.mouseFireDown = false;
+    });
+    // правая кнопка мыши не должна вызывать контекстное меню
+    if (this.input.mouse && this.input.mouse.disableContextMenu) {
+      this.input.mouse.disableContextMenu();
+    }
 
     this.enemies = this.add.group();
     this.enemyLasers = this.add.group();
@@ -301,7 +317,9 @@ export default class SceneMain extends Phaser.Scene {
             }
           }
 
-          const firing = this.keySpace.isDown || this.touchControls.isFiring();
+          const firing = this.keySpace.isDown || this.touchControls.isFiring()
+            || this.mouseFireDown
+            || (this.mouseFireAt && this.time.now - this.mouseFireAt < 200);
           if (firing) {
             this.player.setData('isShooting', true);
           } else {

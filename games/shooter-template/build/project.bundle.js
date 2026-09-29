@@ -64173,6 +64173,11 @@ class Entity extends Phaser.GameObjects.Sprite {
         }
       }, this);
       this.setData('isDead', true);
+      // звук взрыва (безопасно: window.SFX не бросает исключений)
+      if (window.SFX) {
+        window.SFX.play(this.scene.game,
+          Phaser.Math.Between(0, 1) === 0 ? 'sndExplode0' : 'sndExplode1', 0.35);
+      }
     }
   }
 }
@@ -64273,6 +64278,9 @@ class Player extends Entity {
         const laser = new PlayerLaser(this.scene, muzzleX, muzzleY, dir);
         this.scene.playerLasers.add(laser);
 
+        // звук выстрела (слово) — безопасный проигрыватель
+        if (window.SFX) window.SFX.play(this.scene.game, 'sndLaser', 0.18);
+
         // фраза при стрельбе (не чаще раза в полторы секунды)
         const now = this.scene.time.now;
         const last = this.getData('lastSpeechAt') || 0;
@@ -64307,6 +64315,7 @@ class Player extends Entity {
           });
           tx.setOrigin(0.5);
           tx.setDepth(20);
+          if (window.Speech) window.Speech.say(phrase);
           this.scene.authorShootSpeech = tx;
           this.scene.tweens.add({
             targets: tx,
@@ -64445,6 +64454,7 @@ class GunShip extends Entity {
       });
       this.speech.setOrigin(0.5);
       this.speech.setDepth(20);
+      if (window.Speech) window.Speech.say(phrase);
       this.scene.tweens.add({
         targets: this.speech,
         y: this.speech.y - 60,
@@ -64527,6 +64537,7 @@ class GunShip extends Entity {
     });
     tx.setOrigin(0.5);
     tx.setDepth(30);
+    if (window.Speech) window.Speech.say(phrase);
     this.scene.tweens.add({
       targets: tx,
       y: tx.y - 60,
@@ -64632,8 +64643,9 @@ class ScrollingBackground {
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* eslint-disable no-undef */
 
-// Виртуальный джойстик (левая половина экрана) + кнопка огня (правая).
+// Виртуальный джойстик (левый нижний угол, закреплён) + кнопка огня (правый нижний угол).
 // Работает только на тач-устройствах; на десктопе не мешает клавиатуре.
+// Контролы всегда видны и закреплены в одном месте независимо от прокрутки камеры.
 class TouchControls {
   constructor(scene) {
     this.scene = scene;
@@ -64645,78 +64657,117 @@ class TouchControls {
     this.originX = 0;
     this.originY = 0;
     this.radius = 50;
+    this.pointerId = null;
 
     const w = scene.game.config.width;
     const h = scene.game.config.height;
 
-    // зона джойстика — левая половина
+    // Фиксированные позиции: джойстик — левый нижний угол, огонь — правый.
+    this.joyHomeX = 130;
+    this.joyHomeY = h - 130;
+    this.fireX = w - 130;
+    this.fireY = h - 130;
+
+    // зона джойстика — вся левая половина экрана (но сам джойстик закреплён)
     this.joystickZone = scene.add.zone(0, 0, w * 0.5, h).setOrigin(0, 0);
     this.joystickZone.setInteractive();
 
-    // кнопка огня — правый нижний угол
+    // зона кнопки огня — правая половина снизу
     this.fireZone = scene.add.zone(w * 0.75, h * 0.8, w * 0.5, h * 0.4).setOrigin(0.5);
     this.fireZone.setInteractive();
 
-    // визуал джойстика
-    this.base = scene.add.circle(0, 0, this.radius, 0xffffff, 0.15).setDepth(50).setVisible(false);
-    this.thumb = scene.add.circle(0, 0, 28, 0xffffff, 0.4).setDepth(51).setVisible(false);
+    // визуал джойстика: видим всегда (на тач), глубина выше игры, не зависит от камеры
+    this.base = scene.add.circle(this.joyHomeX, this.joyHomeY, this.radius + 8, 0xffffff, 0.22)
+      .setStrokeStyle(3, 0xffffff, 0.5)
+      .setScrollFactor(0)
+      .setDepth(9999);
+    this.thumb = scene.add.circle(this.joyHomeX, this.joyHomeY, 28, 0xffffff, 0.6)
+      .setStrokeStyle(2, 0xffffff, 0.8)
+      .setScrollFactor(0)
+      .setDepth(10000);
 
     // визуал кнопки огня
-    this.fireBtn = scene.add.circle(w * 0.75, h * 0.8, 60, 0xff4444, 0.35).setDepth(50).setVisible(false);
-    this.fireLabel = scene.add.text(w * 0.75, h * 0.8, 'ОГОНЬ', {
+    this.fireBtn = scene.add.circle(this.fireX, this.fireY, 60, 0xff4444, 0.45)
+      .setStrokeStyle(3, 0xffffff, 0.6)
+      .setScrollFactor(0)
+      .setDepth(9999);
+    this.fireLabel = scene.add.text(this.fireX, this.fireY, 'ОГОНЬ', {
       fontFamily: 'monospace',
       fontSize: '18px',
       fill: '#ffffff',
       fontStyle: 'bold',
-    }).setOrigin(0.5).setDepth(51).setVisible(false);
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(10000);
 
+    this.isTouch = !!(scene.sys.game.device && scene.sys.game.device.input && scene.sys.game.device.input.touch);
+
+    // На десктопе прячем визуал, зоны оставляем (не мешают)
+    if (!this.isTouch) {
+      this.base.setVisible(false);
+      this.thumb.setVisible(false);
+      this.fireBtn.setVisible(false);
+      this.fireLabel.setVisible(false);
+    }
+
+    // указатель джойстика: привязываемся к pointerId, чтобы второй палец (огонь)
+    // не сбрасывал джойстик
     this.joystickZone.on('pointerdown', (pointer) => {
-      this.active = true;
+      if (this.joystickActive) return;
       this.joystickActive = true;
-      this.originX = pointer.x;
-      this.originY = pointer.y;
-      this.base.setPosition(pointer.x, pointer.y).setVisible(true);
-      this.thumb.setPosition(pointer.x, pointer.y).setVisible(true);
+      this.active = true;
+      this.pointerId = pointer.id;
       this.updateMove(pointer);
     });
 
-    this.joystickZone.on('pointermove', (pointer) => {
-      if (this.joystickActive) this.updateMove(pointer);
-    });
-
-    this.joystickZone.on('pointerup', () => {
-      this.joystickActive = false;
-      this.moveX = 0;
-      this.moveY = 0;
-      this.base.setVisible(false);
-      this.thumb.setVisible(false);
-    });
+    this._onJoyMove = (pointer) => {
+      if (this.joystickActive && pointer.id === this.pointerId) {
+        this.updateMove(pointer);
+      }
+    };
+    this._onJoyUp = (pointer) => {
+      if (this.joystickActive && pointer.id === this.pointerId) {
+        this.releaseJoystick();
+      }
+    };
+    scene.input.on('pointermove', this._onJoyMove);
+    scene.input.on('pointerup', this._onJoyUp);
+    scene.input.on('pointerupoutside', this._onJoyUp);
 
     this.fireZone.on('pointerdown', () => {
       this.firing = true;
-      this.fireBtn.setFillStyle(0xff4444, 0.6);
+      this.fireBtn.setFillStyle(0xff4444, 0.75);
     });
 
     this.fireZone.on('pointerup', () => {
       this.firing = false;
-      this.fireBtn.setFillStyle(0xff4444, 0.35);
+      this.fireBtn.setFillStyle(0xff4444, 0.45);
     });
 
     this.fireZone.on('pointerout', () => {
       this.firing = false;
-      this.fireBtn.setFillStyle(0xff4444, 0.35);
+      this.fireBtn.setFillStyle(0xff4444, 0.45);
     });
 
-    // показываем контролы только на тач-устройствах
-    if (scene.sys.game.device.input.touch) {
-      this.fireBtn.setVisible(true);
-      this.fireLabel.setVisible(true);
-    }
+    // если сцена останавливается во время движения — сброс состояния
+    scene.events.once('shutdown', () => this.destroy());
+  }
+
+  releaseJoystick() {
+    this.joystickActive = false;
+    this.active = false;
+    this.pointerId = null;
+    this.moveX = 0;
+    this.moveY = 0;
+    // ручка возвращается на закреплённое место
+    this.thumb.setPosition(this.joyHomeX, this.joyHomeY);
   }
 
   updateMove(pointer) {
-    let dx = pointer.x - this.originX;
-    let dy = pointer.y - this.originY;
+    // экранные координаты пальца (учитывают масштаб FIT)
+    const sx = pointer.x;
+    const sy = pointer.y;
+    // джойстик закреплён: центр = домашняя позиция, смещение считаем от неё
+    let dx = sx - this.joyHomeX;
+    let dy = sy - this.joyHomeY;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist > this.radius) {
       dx = (dx / dist) * this.radius;
@@ -64724,7 +64775,7 @@ class TouchControls {
     }
     this.moveX = dx / this.radius;
     this.moveY = dy / this.radius;
-    this.thumb.setPosition(this.originX + dx, this.originY + dy);
+    this.thumb.setPosition(this.joyHomeX + dx, this.joyHomeY + dy);
   }
 
   // возвращает направление движения: {x, y} в диапазоне -1..1
@@ -64737,12 +64788,17 @@ class TouchControls {
   }
 
   destroy() {
-    this.joystickZone.destroy();
-    this.fireZone.destroy();
-    this.base.destroy();
-    this.thumb.destroy();
-    this.fireBtn.destroy();
-    this.fireLabel.destroy();
+    if (this.scene && this.scene.input) {
+      this.scene.input.off('pointermove', this._onJoyMove);
+      this.scene.input.off('pointerup', this._onJoyUp);
+      this.scene.input.off('pointerupoutside', this._onJoyUp);
+    }
+    if (this.joystickZone) this.joystickZone.destroy();
+    if (this.fireZone) this.fireZone.destroy();
+    if (this.base) this.base.destroy();
+    if (this.thumb) this.thumb.destroy();
+    if (this.fireBtn) this.fireBtn.destroy();
+    if (this.fireLabel) this.fireLabel.destroy();
   }
 }
 /* harmony export (immutable) */ __webpack_exports__["default"] = TouchControls;
@@ -136538,9 +136594,34 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
+// Стрелки и пробел не должны прокручивать страницу под игрой.
+window.addEventListener('keydown', (e) => {
+  const block = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Spacebar'];
+  if (block.indexOf(e.key) !== -1 || e.code === 'Space') {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+// Правая кнопка мыши стреляет — контекстное меню браузера (и «кружок»-эффект) убираем.
+const killCtxMenu = (e) => { e.preventDefault(); return false; };
+document.addEventListener('contextmenu', killCtxMenu);
+window.addEventListener('load', () => {
+  if (window.game && window.game.canvas) {
+    window.game.canvas.addEventListener('contextmenu', killCtxMenu);
+  }
+});
+
+// Единый контейнер для canvas'а — создаём сами, чтобы не зависеть от вёрстки.
+if (!document.getElementById('game-container')) {
+  const c = document.createElement('div');
+  c.id = 'game-container';
+  document.body.appendChild(c);
+}
+
 class Game extends Phaser.Game {
   constructor() {
-    super(__WEBPACK_IMPORTED_MODULE_1__Config_config__["a" /* default */]);
+    super(Object.assign({}, __WEBPACK_IMPORTED_MODULE_1__Config_config__["a" /* default */], { parent: 'game-container' }));
+    this.input.mouse.disableContextMenu();
     this.scene.add('SceneIntro', __WEBPACK_IMPORTED_MODULE_9__Scenes_SceneIntro__["a" /* default */]);
     this.scene.add('ThirdStage', __WEBPACK_IMPORTED_MODULE_8__Scenes_ThirdStage__["a" /* default */]);
     this.scene.add('SecondStage', __WEBPACK_IMPORTED_MODULE_7__Scenes_SecondStage__["a" /* default */]);
@@ -204666,7 +204747,11 @@ GameObjectCreator.register('sprite3D', function (config, addToScene)
   width: 1024,
   height: 640,
   backgroundColor: 'black',
-  parent: 'main-container',
+  // Если контейнера нет в DOM (офлайн-сборка), Phaser сам создаёт canvas
+  // и вставляет его в document.body — раньше здесь был несуществующий
+  // 'main-container' и страница оставалась чёрной.
+  parent: (typeof document !== 'undefined' && document.getElementById('game-container'))
+    || (typeof document !== 'undefined' ? document.body : undefined),
   dom: {
     createContainer: true,
   },
@@ -204731,6 +204816,23 @@ function decodeAudio(bytes) {
   return ctx.decodeAudioData(copy);
 }
 
+// Генерируем простой тон на случай, если WAV не декодировался —
+// игра никогда не падает из-за звука, а проигрыватель всегда получает буфер.
+function makeFallbackBuffer(seconds, freq) {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  const ctx = new AC();
+  const sr = ctx.sampleRate;
+  const buffer = ctx.createBuffer(1, Math.max(1, Math.floor(sr * seconds)), sr);
+  const ch = buffer.getChannelData(0);
+  for (let i = 0; i < ch.length; i++) {
+    const t = i / sr;
+    const env = Math.exp(-6 * t); // затухание
+    ch[i] = Math.sin(2 * Math.PI * freq * t) * env * 0.5;
+  }
+  return buffer;
+}
+
 /* harmony default export */ __webpack_exports__["a"] = ({
   decoded: {},
 
@@ -204742,27 +204844,46 @@ function decodeAudio(bytes) {
     for (const key of keys) {
       const e = man[key];
       let bytes;
-      if (e.base64) {
-        bytes = b64ToU8(e.base64);
-      } else {
-        const resp = await fetch(e.file);
-        if (!resp.ok) throw new Error('fetch fail: ' + e.file);
-        bytes = new Uint8Array(await resp.arrayBuffer());
+      try {
+        if (e.base64) {
+          bytes = b64ToU8(e.base64);
+        } else {
+          const resp = await fetch(e.file);
+          if (!resp.ok) throw new Error('fetch fail: ' + e.file);
+          bytes = new Uint8Array(await resp.arrayBuffer());
+        }
+      } catch (err) {
+        console.warn('Asset fetch failed:', e.file, err);
+        continue;
       }
 
       if (e.type === 'audio') {
-        out[key] = { type: 'audio', buffer: await decodeAudio(bytes) };
+        try {
+          out[key] = { type: 'audio', buffer: await decodeAudio(bytes) };
+        } catch (err) {
+          console.warn('Audio decode failed:', e.file, err);
+          const fb = makeFallbackBuffer(0.25, key === 'sndLaser' ? 880 : 180);
+          if (fb) out[key] = { type: 'audio', buffer: fb };
+        }
       } else if (e.type === 'spritesheet') {
-        const img = await loadImage(bytes, 'image/png');
-        out[key] = {
-          type: 'spritesheet',
-          img,
-          frameWidth: e.frameWidth,
-          frameHeight: e.frameHeight,
-        };
+        try {
+          const img = await loadImage(bytes, 'image/png');
+          out[key] = {
+            type: 'spritesheet',
+            img,
+            frameWidth: e.frameWidth,
+            frameHeight: e.frameHeight,
+          };
+        } catch (err) {
+          console.warn('Image decode failed:', e.file, err);
+        }
       } else {
-        const img = await loadImage(bytes, 'image/png');
-        out[key] = { type: 'image', img };
+        try {
+          const img = await loadImage(bytes, 'image/png');
+          out[key] = { type: 'image', img };
+        } catch (err) {
+          console.warn('Image decode failed:', e.file, err);
+        }
       }
     }
     this.decoded = out;
@@ -204774,7 +204895,9 @@ function decodeAudio(bytes) {
     for (const key of keys) {
       const d = this.decoded[key];
       if (d.type === 'audio') {
-        game.cache.audio.add(key, { data: d.buffer });
+        // ВАЖНО: Phaser 3 ждёт в cache.audio сам AudioBuffer,
+        // а не объект-обёртку { data }. Иначе WebAudioSound падает.
+        game.cache.audio.add(key, d.buffer);
       } else if (d.type === 'spritesheet') {
         game.textures.addSpriteSheet(key, d.img, {
           frameWidth: d.frameWidth,
@@ -204786,6 +204909,79 @@ function decodeAudio(bytes) {
     }
   },
 });
+
+// Безопасная речь (Web Speech API): произносит фразы по-русски, если браузер
+// это умеет. Любая ошибка молча игнорируется — игра не падает из-за звука.
+window.Speech = (() => {
+  let voice = null;
+  function pickVoice() {
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      const vs = synth.getVoices().filter((v) => v.lang && v.lang.toLowerCase().startsWith('ru'));
+      voice = vs.length ? vs[0] : null;
+    } catch (e) { /* ignore */ }
+  }
+  try {
+    if (window.speechSynthesis) {
+      pickVoice();
+      window.speechSynthesis.onvoiceschanged = pickVoice;
+    }
+  } catch (e) { /* ignore */ }
+  return {
+    say(text) {
+      try {
+        const synth = window.speechSynthesis;
+        if (!synth || !window.SpeechSynthesisUtterance) return;
+        const u = new window.SpeechSynthesisUtterance(String(text));
+        u.lang = 'ru-RU';
+        if (voice) u.voice = voice;
+        u.volume = 0.5;
+        u.rate = 1.05;
+        synth.cancel(); // не наслаивать реплики
+        synth.speak(u);
+      } catch (e) {
+        console.warn('Speech failed:', e);
+      }
+    },
+  };
+})();
+
+// Безопасный проигрыватель звуков: никогда не бросает исключений.
+// Раньше игра падала, потому что this.sound.add(...) кидал ошибку, если
+// ключа нет в аудио-кэше (или AudioManager недоступен). Здесь всё обёрнуто
+// в try/catch, так что звук — строго «по желанию», а не причина краша.
+window.SFX = (() => {
+  let unlocked = false;
+  function ensureUnlock(game) {
+    if (unlocked || !game || !game.sound) return;
+    try {
+      const unlock = () => {
+        try {
+          if (game.sound.unlock) game.sound.unlock();
+        } catch (e) { /* ignore */ }
+        unlocked = true;
+        document.removeEventListener('pointerdown', unlock);
+        document.removeEventListener('keydown', unlock);
+      };
+      document.addEventListener('pointerdown', unlock);
+      document.addEventListener('keydown', unlock);
+    } catch (e) { /* ignore */ }
+  }
+  return {
+    ensureUnlock,
+    play(game, key, volume) {
+      try {
+        if (!game || !game.sound || !game.sound.add) return; // NoAudio manager
+        if (!game.cache.audio.exists(key)) return;
+        const s = game.sound.add(key, { volume: volume === undefined ? 0.5 : volume });
+        s.play();
+      } catch (e) {
+        console.warn('SFX play failed:', key, e);
+      }
+    },
+  };
+})();
 
 
 /***/ }),
@@ -204802,6 +204998,7 @@ function decodeAudio(bytes) {
   'deepspace-2':      { file: 'assets/bg-city.png',     type: 'image' },
   'deepspace-3':      { file: 'assets/bg-city.png',     type: 'image' },
   'deepspace-scores': { file: 'assets/bg-city.png',     type: 'image' },
+  'deepspace-menu':   { file: 'assets/bg-city.png',     type: 'image' },
   cover:              { file: 'assets/cover.png',       type: 'image' },
   'score-gopnik':     { file: 'assets/score-gopnik.png', type: 'image' },
   sprWord:            { file: 'assets/sprWord.png',     type: 'image' },
@@ -204809,6 +205006,10 @@ function decodeAudio(bytes) {
   sprPlayer:          { file: 'assets/sprPlayer.png',   type: 'spritesheet', frameWidth: 89, frameHeight: 160 },
   sprEnemy0:          { file: 'assets/sprEnemy0v2.png', type: 'spritesheet', frameWidth: 122, frameHeight: 160 },
   sprExplosion:       { file: 'assets/sprExplosion.png', type: 'spritesheet', frameWidth: 32, frameHeight: 32 },
+  // Звуки (возвращены в игру; воспроизводятся через безопасный проигрыватель window.SFX)
+  sndLaser:           { file: 'assets/sndLaser.wav',     type: 'audio' },
+  sndExplode0:        { file: 'assets/sndExplode0.wav',  type: 'audio' },
+  sndExplode1:        { file: 'assets/sndExplode1.wav',  type: 'audio' },
 });
 
 
@@ -204913,11 +205114,27 @@ class SceneMain extends Phaser.Scene {
 
         this.touchControls = new TouchControls(this);
 
-    this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.keyW = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.W, Phaser.Input.Keyboard.KeyCodes.UP]);
+    this.keyS = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.S, Phaser.Input.Keyboard.KeyCodes.DOWN]);
+    this.keyA = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.LEFT]);
+    this.keyD = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.D, Phaser.Input.Keyboard.KeyCodes.RIGHT]);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
+    this.mouseFireDown = false;
+    this.mouseFireAt = 0;
+    this.input.on('pointerdown', (p) => {
+      if (p.rightButtonDown() || p.leftButtonDown()) {
+        this.mouseFireDown = true;
+        this.mouseFireAt = this.time.now;
+      }
+    });
+    this.input.on('pointerup', (p) => {
+      if (!p.rightButtonDown() && !p.leftButtonDown()) this.mouseFireDown = false;
+    });
+    // правая кнопка мыши не должна вызывать контекстное меню
+    if (this.input.mouse && this.input.mouse.disableContextMenu) {
+      this.input.mouse.disableContextMenu();
+    }
 
     this.enemies = this.add.group();
     this.enemyLasers = this.add.group();
@@ -205117,7 +205334,9 @@ class SceneMain extends Phaser.Scene {
             }
           }
 
-          const firing = this.keySpace.isDown || this.touchControls.isFiring();
+          const firing = this.keySpace.isDown || this.touchControls.isFiring()
+            || this.mouseFireDown
+            || (this.mouseFireAt && this.time.now - this.mouseFireAt < 200);
           if (firing) {
             this.player.setData('isShooting', true);
           } else {
@@ -205470,11 +205689,27 @@ class SecondStage extends Phaser.Scene {
 
         this.touchControls = new TouchControls(this);
 
-    this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.keyW = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.W, Phaser.Input.Keyboard.KeyCodes.UP]);
+    this.keyS = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.S, Phaser.Input.Keyboard.KeyCodes.DOWN]);
+    this.keyA = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.LEFT]);
+    this.keyD = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.D, Phaser.Input.Keyboard.KeyCodes.RIGHT]);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
+    this.mouseFireDown = false;
+    this.mouseFireAt = 0;
+    this.input.on('pointerdown', (p) => {
+      if (p.rightButtonDown() || p.leftButtonDown()) {
+        this.mouseFireDown = true;
+        this.mouseFireAt = this.time.now;
+      }
+    });
+    this.input.on('pointerup', (p) => {
+      if (!p.rightButtonDown() && !p.leftButtonDown()) this.mouseFireDown = false;
+    });
+    // правая кнопка мыши не должна вызывать контекстное меню
+    if (this.input.mouse && this.input.mouse.disableContextMenu) {
+      this.input.mouse.disableContextMenu();
+    }
 
     this.enemies = this.add.group();
     this.enemyLasers = this.add.group();
@@ -205587,7 +205822,9 @@ class SecondStage extends Phaser.Scene {
             }
           }
 
-          const firing = this.keySpace.isDown || this.touchControls.isFiring();
+          const firing = this.keySpace.isDown || this.touchControls.isFiring()
+            || this.mouseFireDown
+            || (this.mouseFireAt && this.time.now - this.mouseFireAt < 200);
           if (firing) {
             this.player.setData('isShooting', true);
           } else {
@@ -205736,11 +205973,27 @@ class ThirdStage extends Phaser.Scene {
 
     this.touchControls = new TouchControls(this);
 
-    this.keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-    this.keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-    this.keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-    this.keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+    this.keyW = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.W, Phaser.Input.Keyboard.KeyCodes.UP]);
+    this.keyS = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.S, Phaser.Input.Keyboard.KeyCodes.DOWN]);
+    this.keyA = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.A, Phaser.Input.Keyboard.KeyCodes.LEFT]);
+    this.keyD = this.input.keyboard.addKey([Phaser.Input.Keyboard.KeyCodes.D, Phaser.Input.Keyboard.KeyCodes.RIGHT]);
     this.keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    // стрельба также по клику мыши (ЛКМ или ПКМ) — фиксируем момент нажатия
+    this.mouseFireDown = false;
+    this.mouseFireAt = 0;
+    this.input.on('pointerdown', (p) => {
+      if (p.rightButtonDown() || p.leftButtonDown()) {
+        this.mouseFireDown = true;
+        this.mouseFireAt = this.time.now;
+      }
+    });
+    this.input.on('pointerup', (p) => {
+      if (!p.rightButtonDown() && !p.leftButtonDown()) this.mouseFireDown = false;
+    });
+    // правая кнопка мыши не должна вызывать контекстное меню
+    if (this.input.mouse && this.input.mouse.disableContextMenu) {
+      this.input.mouse.disableContextMenu();
+    }
 
     this.enemies = this.add.group();
     this.enemyLasers = this.add.group();
@@ -205853,7 +206106,9 @@ class ThirdStage extends Phaser.Scene {
             }
           }
 
-          const firing = this.keySpace.isDown || this.touchControls.isFiring();
+          const firing = this.keySpace.isDown || this.touchControls.isFiring()
+            || this.mouseFireDown
+            || (this.mouseFireAt && this.time.now - this.mouseFireAt < 200);
           if (firing) {
             this.player.setData('isShooting', true);
           } else {

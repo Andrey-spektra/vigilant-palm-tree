@@ -7,6 +7,7 @@ export default {
   'deepspace-2':      { file: 'assets/bg-city.png',     type: 'image' },
   'deepspace-3':      { file: 'assets/bg-city.png',     type: 'image' },
   'deepspace-scores': { file: 'assets/bg-city.png',     type: 'image' },
+  'deepspace-menu':   { file: 'assets/bg-city.png',     type: 'image' },
   cover:              { file: 'assets/cover.png',       type: 'image' },
   'score-gopnik':     { file: 'assets/score-gopnik.png', type: 'image' },
   sprWord:            { file: 'assets/sprWord.png',     type: 'image' },
@@ -14,4 +15,8 @@ export default {
   sprPlayer:          { file: 'assets/sprPlayer.png',   type: 'spritesheet', frameWidth: 89, frameHeight: 160 },
   sprEnemy0:          { file: 'assets/sprEnemy0v2.png', type: 'spritesheet', frameWidth: 122, frameHeight: 160 },
   sprExplosion:       { file: 'assets/sprExplosion.png', type: 'spritesheet', frameWidth: 32, frameHeight: 32 },
+  // Звуки (возвращены в игру; воспроизводятся через безопасный проигрыватель window.SFX)
+  sndLaser:           { file: 'assets/sndLaser.wav',     type: 'audio' },
+  sndExplode0:        { file: 'assets/sndExplode0.wav',  type: 'audio' },
+  sndExplode1:        { file: 'assets/sndExplode1.wav',  type: 'audio' },
 };
