@@ -126,17 +126,6 @@ export class Player extends Entity {
     });
   }
 
-  onSecondStage() {
-    this.scene.time.addEvent({
-      delay: 1000,
-      callback() {
-        this.scene.scene.start('SceneSecondStage');
-      },
-      callbackScope: this,
-      loop: false,
-    });
-  }
-
   update() {
     this.body.setVelocity(0, 0);
 
