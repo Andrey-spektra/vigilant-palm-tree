@@ -3,11 +3,9 @@
 // Реестр ассетов. На сервере (dev :8800) используется поле `file` (реальный путь).
 // Оффлайн-сборка подменяет `file` на `base64` до старта игры — см. assetLoader.js.
 export default {
+  // Одна глава: все фоны используют ключ 'deepspace' — в оффлайн-сборку
+  // картинка bg-city.png попадает ОДИН раз (раньше дублировалась 5 раз).
   deepspace:          { file: 'assets/bg-city.png',     type: 'image' },
-  'deepspace-2':      { file: 'assets/bg-city.png',     type: 'image' },
-  'deepspace-3':      { file: 'assets/bg-city.png',     type: 'image' },
-  'deepspace-scores': { file: 'assets/bg-city.png',     type: 'image' },
-  'deepspace-menu':   { file: 'assets/bg-city.png',     type: 'image' },
   cover:              { file: 'assets/cover.png',       type: 'image' },
   'score-gopnik':     { file: 'assets/score-gopnik.png', type: 'image' },
   sprWord:            { file: 'assets/sprWord.png',     type: 'image' },
