@@ -10,7 +10,7 @@ export default class SceneIntro extends Phaser.Scene {
   }
 
   create() {
-    this.bg = this.add.image(512, 320, 'deepspace-menu');
+    this.bg = this.add.image(512, 320, 'deepspace');
     const div = document.createElement('div');
     div.innerHTML = `<p
     style=" color: white;

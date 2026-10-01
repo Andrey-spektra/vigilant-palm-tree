@@ -20,7 +20,7 @@ export default class SceneScores extends Phaser.Scene {
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.D);
 
     // фон — город, справа — гопник, читающий книгу
-    this.bg = this.add.image(512, 320, 'deepspace-scores');
+    this.bg = this.add.image(512, 320, 'deepspace');
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
     this.gopnik = this.add.image(this.game.config.width * 0.85, this.game.config.height * 0.62, 'score-gopnik');

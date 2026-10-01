@@ -50,7 +50,9 @@ export class Entity extends Phaser.GameObjects.Sprite {
 
 export class Player extends Entity {
   constructor(scene, x, y, key) {
-    super(scene, x, y, key, 'Player');
+    super(scene, x, y, key || 'sprPlayer', 'Player');
+    // Глава 2: поклонница (sprFan) — тот же герой, другой спрайт и оружие «Ещё».
+    this.isFan = (key === 'sprFan');
     this.setData('speed', 200);
     this.setData('isShooting', false);
     this.setData('timerShootDelay', 10);
@@ -59,7 +61,7 @@ export class Player extends Entity {
     this.setData('hp', 3);
     this.setData('invulnUntil', 0);
 
-    this.play('sprPlayer');
+    this.play(this.isFan ? 'sprFan' : 'sprPlayer');
   }
 
   // возвращает true, если игрок получил урон и ещё жив; false если умер
@@ -126,17 +128,6 @@ export class Player extends Entity {
     });
   }
 
-  onSecondStage() {
-    this.scene.time.addEvent({
-      delay: 1000,
-      callback() {
-        this.scene.scene.start('SceneSecondStage');
-      },
-      callbackScope: this,
-      loop: false,
-    });
-  }
-
   update() {
     this.body.setVelocity(0, 0);
 
@@ -172,7 +163,8 @@ export class Player extends Entity {
         // выстрел из «головы» — выше центра, смещение по направлению
         const muzzleX = this.x + dir * 45;
         const muzzleY = this.y - 55;
-        const laser = new PlayerLaser(this.scene, muzzleX, muzzleY, dir);
+        const laser = new PlayerLaser(this.scene, muzzleX, muzzleY, dir,
+          this.isFan ? 'sprEsho' : 'sprWord');
         this.scene.playerLasers.add(laser);
 
         // звук выстрела (слово) — безопасный проигрыватель
@@ -188,7 +180,14 @@ export class Player extends Entity {
             this.scene.authorShootSpeech.destroy();
             this.scene.authorShootSpeech = null;
           }
-          const phrases = [
+          const phrases = this.isFan ? [
+            'Ещё!',
+            'Ещё!!!',
+            'Давай ещё!',
+            'Я хочу ещё!',
+            'Пиши ещё!',
+            'Не останавливайся!',
+          ] : [
             'Как тебе моя сатира?',
             'Получи каламбуром',
             'Держи абзац',
@@ -237,12 +236,14 @@ export class Player extends Entity {
 }
 
 export class PlayerLaser extends Entity {
-  constructor(scene, x, y, dir) {
-    super(scene, x, y, 'sprWord');
+  constructor(scene, x, y, dir, key) {
+    super(scene, x, y, key || 'sprWord');
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
     this.body.velocity.x = d * 200; // летит строго вбок — в сторону, куда смотрит игрок
     this.body.velocity.y = 0;
-    this.setTint(0x9fd8ff); // цвет слова — как у реплик автора
+    // «Ещё» (поклонница) показываем без тонировки — слово уже нарисовано белым;
+    // обычные слова автора тонируем голубым.
+    if ((key || 'sprWord') !== 'sprEsho') this.setTint(0x9fd8ff);
   }
 }
 

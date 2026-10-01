@@ -26,8 +26,10 @@ let timerText;
 let stageText;
 const zero = 0;
 let sec = 0;
-// Глава одна, слова бесконечны.
+// Слова бесконечны в обеих главах.
 const ammunition = Infinity;
+// Текущая глава: 1 — Писатель, 2 — Поклонница (стреляет «Ещё»).
+let chapter = 1;
 
 export default class SceneMain extends Phaser.Scene {
   constructor() {
@@ -38,17 +40,20 @@ export default class SceneMain extends Phaser.Scene {
 
   preload() {}
 
-  create() {
-    Storage.currentScore(zero);
+  create(data) {
+    chapter = (data && data.chapter) || 1;
+    if (chapter === 1) score = 0; // новый запуск; глава 2 продолжает счёт
+    Storage.currentScore(score);
     Storage.setAmmo(ammunition);
 
     this.bg = this.add.image(512, 320, 'deepspace');
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
-    stageText = this.add.text(250, 16, 'Глава 1 — бесконечные слова', {
-      fontSize: '32px',
-      fill: '#fff',
-    });
+    stageText = this.add.text(250, 16,
+      chapter === 1 ? 'Глава 1 — бесконечные слова' : 'Глава 2 — поклонница говорит «Ещё»', {
+        fontSize: '32px',
+        fill: '#fff',
+      });
 
     scoreText = this.add.text(16, 16, ' ', {
           fontSize: '32px',
@@ -88,12 +93,21 @@ export default class SceneMain extends Phaser.Scene {
       frameRate: 6,
       repeat: -1,
     });
+    // Анимация поклонницы (глава 2) — те же кадры 0..4, что и у спрайт-листа.
+    if (!this.anims.exists('sprFan')) {
+      this.anims.create({
+        key: 'sprFan',
+        frames: this.anims.generateFrameNumbers('sprFan'),
+        frameRate: 6,
+        repeat: -1,
+      });
+    }
 
     this.player = new Player(
           this,
           this.game.config.width * 0.5,
           this.game.config.height * 0.5,
-          'sprPlayer',
+          chapter === 2 ? 'sprFan' : 'sprPlayer',
         );
 
         this.touchControls = new TouchControls(this);
@@ -252,7 +266,7 @@ export default class SceneMain extends Phaser.Scene {
       this.player.body.setVelocity(0, 0);
       this.player.anims.stop();
       // произносит последнюю фразу
-      const phrase = 'Мои слова на исходе...';
+      const phrase = chapter === 2 ? 'Не-е-ет, я хотела ещё!' : 'Мои слова на исходе...';
       const text = this.add.text(
         this.player.x,
         this.player.y - 90,
@@ -297,7 +311,14 @@ export default class SceneMain extends Phaser.Scene {
       }
     });
 
-    const nextScene = () => this.scene.start('SceneScores');
+    // Переход между главами: 1 -> 2 (поклонница), 2 -> экран итогов.
+    const nextScene = () => {
+      if (chapter === 1) {
+        this.scene.start('SceneMain', { chapter: 2 });
+      } else {
+        this.scene.start('SceneScores', { chapter: 2 });
+      }
+    };
 
     sec = 60;
     // Add timer
@@ -305,9 +326,8 @@ export default class SceneMain extends Phaser.Scene {
       timerText.setText(`Время: ${sec}`);
       sec--;
       if (sec < 0) {
-        // Единственная глава: по истечении времени — финал.
-        nextScene();
         stopTimer();
+        nextScene();
       }
     }, 1000);
 

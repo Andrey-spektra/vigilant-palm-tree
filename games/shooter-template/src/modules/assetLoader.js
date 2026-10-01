@@ -87,6 +87,12 @@ export default {
     // декодируем последовательно, чтобы не упереться в лимиты параллельных Image
     for (const key of keys) {
       const e = man[key];
+      // Алиасы: один и тот же файл, зарегистрированный под другим именем
+      // (например, фоны разных сцен). Декодируем один раз, переиспользуем.
+      if (e.alias) {
+        if (out[e.alias]) out[key] = out[e.alias];
+        continue;
+      }
       let bytes;
       try {
         if (e.base64) {
