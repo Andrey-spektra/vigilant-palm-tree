@@ -121,6 +121,7 @@ export default class SceneMain extends Phaser.Scene {
           this.game.config.width * 0.5,
           this.game.config.height * 0.5,
           Storage.characterKey(character),
+          { fanWords: !!(data && data.fanWords) },
         );
 
         this.touchControls = new TouchControls(this);
@@ -327,9 +328,10 @@ export default class SceneMain extends Phaser.Scene {
     // Переход между главами: 1 -> 2 (поклонница), 2 -> экран итогов.
     const nextScene = () => {
       if (chapter === 1) {
-        // глава 2 — сюжетная поклонница, она играет вместо Автора;
-        // выбор из меню возвращается в главе 1 при следующем запуске
-        this.scene.start('SceneMain', { chapter: 2, character: 'fan' });
+        // Глава 2: враги — поклонницы, а игроком остаётся ВЫБРАННЫЙ в меню
+        // Автор (мужчина или женщина). Отличия только в бое: он стреляет
+        // словом «Ещё» (ключ fanWords), как это делала поклонница.
+        this.scene.start('SceneMain', { chapter: 2, character: this.character, fanWords: true });
       } else {
         this.scene.start('SceneScores', { chapter: 2 });
       }

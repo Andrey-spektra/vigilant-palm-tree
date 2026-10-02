@@ -16,11 +16,10 @@ function mustReplace(needle, repl, label) {
   js = js.replace(needle, repl);
 }
 
-// 1) Точка входа: старт сразу с Главы 1 (без главного меню).
-mustReplace(
-  'this.scene.add("SceneMain",R),this.scene.start("SceneMainMenu")',
-  'this.scene.add("SceneMain",R),this.scene.start("SceneMain",{chapter:1})',
-  'точка старта');
+// 1) Точка входа НЕ трогаем: игра стартует с главного меню, где игрок
+//    выбирает персонажа (Автор-мужчина / Авторша). Выбор сохраняется в
+//    localStorage и window.__GAME_CHARACTER__ — см. src/modules/storage.js.
+//    Поэтому патч «старт сразу с Главы 1» отменён.
 
 // 2) Враг Главы 2: спрайт/анимация поклонницы вместо гопника (s — аргумент chapter).
 mustReplace(
@@ -39,11 +38,12 @@ mustReplace(
   'i=new v(this.scene,t,e,this.dir,!0===this.isFanEnemy&&2===P?"sprEsho":null);',
   'выстрел врага (поклонница стреляет «Ещё»)');
 
-// 2c) Герой обеих глав — Автор (sprPlayer), стреляет словами (sprWord).
-mustReplace(
-  'this.player=new p(this,.5*this.game.config.width,.5*this.game.config.height,2===P?"sprFan":"sprPlayer")',
-  'this.player=new p(this,.5*this.game.config.width,.5*this.game.config.height,"sprPlayer")',
-  'спрайт игрока (всегда Автор)');
+// 2c) Игроком обеих глав остаётся ВЫБРАННЫЙ в меню Автор (sprPlayer — мужчина
+//     или sprAuthorFemale — женщина). В Главе 2 он стреляет словом «Ещё»
+//     (флаг fanWords), поэтому спрайт поклонницы игроку не подставляем.
+if (js.includes('2===P?"sprFan":"sprPlayer"')) {
+  js = js.replace('2===P?"sprFan":"sprPlayer"', '"sprPlayer"');
+}
 
 // 3) Заголовок Главы 2 под новую схему (автор против поклонниц).
 if (js.includes('"Глава 2 — поклонница говорит «Ещё»"')) {

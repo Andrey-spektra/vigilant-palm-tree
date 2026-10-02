@@ -49,15 +49,17 @@ export class Entity extends Phaser.GameObjects.Sprite {
 }
 
 export class Player extends Entity {
-  constructor(scene, x, y, key) {
+  constructor(scene, x, y, key, opts) {
     const textureKey = key || Storage.characterKey();
     super(scene, x, y, textureKey, 'Player');
     // Игрок всегда Автор — просто в одном из двух обличий (выбор в меню):
     // 'sprPlayer' — мужчина, 'sprAuthorFemale' — женщина.
     // Ключ 'sprFan' (поклонница) исторически тоже мог прийти сюда: она
     // стреляет словом «Ещё», поэтому флаг isFan сохранён для совместимости.
-    this.isFan = (textureKey === 'sprFan');
-    this.character = this.isFan ? 'fan'
+    // В главе 2 под словом «Ещё» играет ВЫБРАННЫЙ в меню Автор — это задаётся
+    // флагом fanWords из SceneMain (см. alsoEsho), а не сменой спрайта.
+    this.isFan = (textureKey === 'sprFan') || !!(opts && opts.fanWords);
+    this.character = (this.isFan && !opts) ? 'fan'
       : (textureKey === 'sprAuthorFemale' ? 'female' : 'male');
     // имя анимации совпадает с ключом текстуры ('sprPlayer' / 'sprAuthorFemale')
     this.walkAnim = this.character === 'female' ? 'sprAuthorFemale'
