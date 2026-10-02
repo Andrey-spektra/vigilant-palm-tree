@@ -8,10 +8,7 @@
 import 'phaser';
 import {
   Player,
-  PlayerLaser,
-  ChaserShip,
   GunShip,
-  CarrierShip,
 } from '../entities';
 
 const Storage = require('../modules/storage');
