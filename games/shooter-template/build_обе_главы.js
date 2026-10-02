@@ -28,6 +28,23 @@ mustReplace(
   'super(t,e,i,2===s?"sprFan":"sprEnemy0","GunShip");const r=0===s||null==s?1:s;this.play(2===s?"sprFan":"sprEnemy0")',
   'конструктор GunShip (текстура+анимация)');
 
+// 2b) Снаряд поклонницы — «Ещё» (sprEsho), а не мат (sprMat).
+//     EnemyLaser (v): конструктор получает 5-й аргумент с текстурой (имя o, не занято в скоупе).
+mustReplace(
+  'class v extends f{constructor(t,e,i,s){super(t,e,i,"sprMat");const n=0===s||null==s?1:s;',
+  'class v extends f{constructor(t,e,i,s,o){super(t,e,i,o||"sprMat");const n=0===s||null==s?1:s;',
+  'конструктор EnemyLaser (текстура снаряда)');
+mustReplace(
+  'i=new v(this.scene,t,e,this.dir);',
+  'i=new v(this.scene,t,e,this.dir,!0===this.isFanEnemy&&2===P?"sprEsho":null);',
+  'выстрел врага (поклонница стреляет «Ещё»)');
+
+// 2c) Герой обеих глав — Автор (sprPlayer), стреляет словами (sprWord).
+mustReplace(
+  'this.player=new p(this,.5*this.game.config.width,.5*this.game.config.height,2===P?"sprFan":"sprPlayer")',
+  'this.player=new p(this,.5*this.game.config.width,.5*this.game.config.height,"sprPlayer")',
+  'спрайт игрока (всегда Автор)');
+
 // 3) Заголовок Главы 2 под новую схему (автор против поклонниц).
 if (js.includes('"Глава 2 — поклонница говорит «Ещё»"')) {
   js = js.replace('"Глава 2 — поклонница говорит «Ещё»"', '"Глава 2 — автор против поклонниц"');
