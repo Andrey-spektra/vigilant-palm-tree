@@ -50,9 +50,18 @@ export class Entity extends Phaser.GameObjects.Sprite {
 
 export class Player extends Entity {
   constructor(scene, x, y, key) {
-    super(scene, x, y, key || 'sprPlayer', 'Player');
-    // Глава 2: поклонница (sprFan) — тот же герой, другой спрайт и оружие «Ещё».
-    this.isFan = (key === 'sprFan');
+    const textureKey = key || Storage.characterKey();
+    super(scene, x, y, textureKey, 'Player');
+    // Игрок всегда Автор — просто в одном из двух обличий (выбор в меню):
+    // 'sprPlayer' — мужчина, 'sprAuthorFemale' — женщина.
+    // Ключ 'sprFan' (поклонница) исторически тоже мог прийти сюда: она
+    // стреляет словом «Ещё», поэтому флаг isFan сохранён для совместимости.
+    this.isFan = (textureKey === 'sprFan');
+    this.character = this.isFan ? 'fan'
+      : (textureKey === 'sprAuthorFemale' ? 'female' : 'male');
+    // имя анимации совпадает с ключом текстуры ('sprPlayer' / 'sprAuthorFemale')
+    this.walkAnim = this.character === 'female' ? 'sprAuthorFemale'
+      : (this.character === 'fan' ? 'sprFan' : 'sprPlayer');
     this.setData('speed', 200);
     this.setData('isShooting', false);
     this.setData('timerShootDelay', 10);
@@ -61,7 +70,7 @@ export class Player extends Entity {
     this.setData('hp', 3);
     this.setData('invulnUntil', 0);
 
-    this.play(this.isFan ? 'sprFan' : 'sprPlayer');
+    this.play(this.walkAnim);
   }
 
   // возвращает true, если игрок получил урон и ещё жив; false если умер
@@ -180,14 +189,7 @@ export class Player extends Entity {
             this.scene.authorShootSpeech.destroy();
             this.scene.authorShootSpeech = null;
           }
-          const phrases = this.isFan ? [
-            'Ещё!',
-            'Ещё!!!',
-            'Давай ещё!',
-            'Я хочу ещё!',
-            'Пиши ещё!',
-            'Не останавливайся!',
-          ] : [
+          const malePhrases = [
             'Как тебе моя сатира?',
             'Получи каламбуром',
             'Держи абзац',
@@ -197,6 +199,23 @@ export class Player extends Entity {
             'Насладись сюжетом',
             'Как тебе интрига?',
           ];
+          // Авторша (выбор в меню) — женская версия того же оружия словом
+          const femalePhrases = [
+            'Как тебе моя лирика?',
+            'Лови главу, написанную с любовью',
+            'Немного яда между строк',
+            'Отхлебни вдохновения',
+            'Насладись монологом',
+            'Читай и просвещайся',
+          ];
+          const phrases = this.isFan ? [
+            'Ещё!',
+            'Ещё!!!',
+            'Давай ещё!',
+            'Я хочу ещё!',
+            'Пиши ещё!',
+            'Не останавливайся!',
+          ] : (this.character === 'female' ? femalePhrases : malePhrases);
           const phrase = phrases[Phaser.Math.Between(0, phrases.length - 1)];
           const tx = this.scene.add.text(this.x, this.y - 90, phrase, {
             fontFamily: 'monospace',

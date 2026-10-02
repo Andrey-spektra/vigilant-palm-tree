@@ -90,6 +90,15 @@ export default class SceneMain extends Phaser.Scene {
       frameRate: 6,
       repeat: -1,
     });
+    // Анимация Авторши (женский персонаж, выбор в меню) — кадры 0..4 того же плана.
+    if (!this.anims.exists('sprAuthorFemale')) {
+      this.anims.create({
+        key: 'sprAuthorFemale',
+        frames: this.anims.generateFrameNumbers('sprAuthorFemale'),
+        frameRate: 6,
+        repeat: -1,
+      });
+    }
     // Анимация поклонницы (глава 2) — те же кадры 0..4, что и у спрайт-листа.
     if (!this.anims.exists('sprFan')) {
       this.anims.create({
@@ -100,11 +109,18 @@ export default class SceneMain extends Phaser.Scene {
       });
     }
 
+    // Персонаж выбирается в главном меню (SceneMainMenu): 'male' | 'female'.
+    // Глава 2 приходит с character === 'fan' — это сюжетная поклонница, её
+    // выбор не запоминаем, чтобы после «Переписать историю» играл выбранный Автор.
+    const character = (data && data.character) || Storage.getCharacter();
+    if (Storage.isPlayableCharacter(character)) Storage.setCharacter(character);
+    this.character = character;
+
     this.player = new Player(
           this,
           this.game.config.width * 0.5,
           this.game.config.height * 0.5,
-          'sprPlayer', // в обеих главах играет Автор (словами); sprFan — спрайт врагов-поклонниц
+          Storage.characterKey(character),
         );
 
         this.touchControls = new TouchControls(this);
@@ -311,7 +327,9 @@ export default class SceneMain extends Phaser.Scene {
     // Переход между главами: 1 -> 2 (поклонница), 2 -> экран итогов.
     const nextScene = () => {
       if (chapter === 1) {
-        this.scene.start('SceneMain', { chapter: 2 });
+        // глава 2 — сюжетная поклонница, она играет вместо Автора;
+        // выбор из меню возвращается в главе 1 при следующем запуске
+        this.scene.start('SceneMain', { chapter: 2, character: 'fan' });
       } else {
         this.scene.start('SceneScores', { chapter: 2 });
       }
