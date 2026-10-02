@@ -2,6 +2,8 @@
 
 import 'phaser';
 
+const Storage = require('../modules/storage');
+
 export default class SceneIntro extends Phaser.Scene {
   constructor() {
     super({
@@ -54,6 +56,10 @@ export default class SceneIntro extends Phaser.Scene {
     this.add.dom(this.game.config.width * 0.3, this.game.config.height * 0, div, 'background-color: transparent; width: 220px; height: 0; font: 48px Arial');
 
     const btn = document.getElementById('button');
-    btn.onclick = () => this.scene.start('SceneMain');
+    btn.onclick = () => {
+      // Тоже через выбор пола, если он ещё не сделан.
+      if (!Storage.getAuthorGender()) this.scene.start('SceneGender');
+      else this.scene.start('SceneMain');
+    };
   }
 }

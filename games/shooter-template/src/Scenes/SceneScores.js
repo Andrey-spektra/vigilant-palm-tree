@@ -15,6 +15,8 @@ export default class SceneScores extends Phaser.Scene {
 
   create(data) {
     const chapter = (data && data.chapter) || 1;
+    // Автор — женщина: её спрайт на экране итогов вместо поклонницы.
+    const femaleAuthor = Boolean(data && data.femaleAuthor);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.W);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.S);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.A);
@@ -25,7 +27,12 @@ export default class SceneScores extends Phaser.Scene {
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
     if (chapter === 2) {
-      this.fan = this.add.image(this.game.config.width * 0.85, this.game.config.height * 0.62, 'score-fan');
+      if (femaleAuthor) {
+        // Автор-женщина: показываем её саму (кадр спрайт-листа писательницы).
+        this.fan = this.add.sprite(this.game.config.width * 0.85, this.game.config.height * 0.62, 'sprPlayerFemale', 0);
+      } else {
+        this.fan = this.add.image(this.game.config.width * 0.85, this.game.config.height * 0.62, 'score-fan');
+      }
       this.fan.setScale(0.9);
     } else {
       this.gopnik = this.add.image(this.game.config.width * 0.85, this.game.config.height * 0.62, 'score-gopnik');

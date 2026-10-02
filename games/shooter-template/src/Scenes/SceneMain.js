@@ -30,6 +30,8 @@ let sec = 0;
 const ammunition = Infinity;
 // Текущая глава: 1 — Писатель, 2 — Поклонница (стреляет «Ещё»).
 let chapter = 1;
+// Пол автора-персонажа, выбранный в начале игры: 'male' | 'female'.
+let authorGender = 'male';
 
 export default class SceneMain extends Phaser.Scene {
   constructor() {
@@ -42,6 +44,15 @@ export default class SceneMain extends Phaser.Scene {
 
   create(data) {
     chapter = (data && data.chapter) || 1;
+    // Пол автора читаем из хранилища: выбор сделан один раз в начале игры
+    // и действует в обеих главах. Если выбора нет (прямой запуск сцены) —
+    // переходим к сцене выбора.
+    const g = Storage.getAuthorGender();
+    if (!g) {
+      this.scene.start('SceneGender');
+      return;
+    }
+    authorGender = g;
     if (chapter === 1) score = 0; // новый запуск; глава 2 продолжает счёт
     Storage.currentScore(score);
     Storage.setAmmo(ammunition);
@@ -93,6 +104,15 @@ export default class SceneMain extends Phaser.Scene {
       frameRate: 6,
       repeat: -1,
     });
+    // Анимация писательницы — женский вариант героя (выбор игрока в начале игры).
+    if (!this.anims.exists('sprPlayerFemale')) {
+      this.anims.create({
+        key: 'sprPlayerFemale',
+        frames: this.anims.generateFrameNumbers('sprPlayerFemale'),
+        frameRate: 6,
+        repeat: -1,
+      });
+    }
     // Анимация поклонницы (глава 2) — те же кадры 0..4, что и у спрайт-листа.
     if (!this.anims.exists('sprFan')) {
       this.anims.create({
@@ -103,11 +123,13 @@ export default class SceneMain extends Phaser.Scene {
       });
     }
 
+    // Спрайт автора зависит от выбора пола в начале игры; глава 2 — поклонница.
+    const authorKey = authorGender === 'female' ? 'sprPlayerFemale' : 'sprPlayer';
     this.player = new Player(
           this,
           this.game.config.width * 0.5,
           this.game.config.height * 0.5,
-          chapter === 2 ? 'sprFan' : 'sprPlayer',
+          chapter === 2 ? 'sprFan' : authorKey,
         );
 
         this.touchControls = new TouchControls(this);
@@ -315,6 +337,9 @@ export default class SceneMain extends Phaser.Scene {
     const nextScene = () => {
       if (chapter === 1) {
         this.scene.start('SceneMain', { chapter: 2 });
+      } else if (authorGender === 'female') {
+        // Автор — женщина: во втором томе она сама говорит «Ещё».
+        this.scene.start('SceneScores', { chapter: 2, femaleAuthor: true });
       } else {
         this.scene.start('SceneScores', { chapter: 2 });
       }
