@@ -304,7 +304,7 @@ export class ChaserShip extends Entity {
 }
 
 export class GunShip extends Entity {
-  constructor(scene, x, y, dir) {
+  constructor(scene, x, y, dir, chapter) {
     super(scene, x, y, 'sprEnemy0', 'GunShip');
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
     this.play('sprEnemy0');
@@ -313,8 +313,14 @@ export class GunShip extends Entity {
     this.dir = d;
     this.body.velocity.x = this.dir * Phaser.Math.Between(40, 70); // идёт вбок
 
+    // Глава 2: вместо гопника появляется поклонница — тот же спрайт и правила,
+    // только свои реплики.
+    this.isFanEnemy = chapter === 2;
+
     // фраза при появлении (случайная из списка)
-    const phrases = [
+    const phrases = this.isFanEnemy ? [
+      'Где моя прода?',
+    ] : [
       'Писатель? А я художник — дай рожу распишу.',
       'Чё, голодный? Давай, угощу люлями.',
       'Чё лыбу тянешь? Ща ноги протянешь.',
@@ -393,7 +399,9 @@ export class GunShip extends Entity {
 
   // фраза, когда гопник получил урон (случайная из списка)
   showHitPhrase() {
-    const phrases = [
+    const phrases = this.isFanEnemy ? [
+      'Автор гений',
+    ] : [
       'Он чем-то зацепил меня, гад.',
       'Его слова ранят!',
       'Он пырнул меня чем-то по сердцу...',

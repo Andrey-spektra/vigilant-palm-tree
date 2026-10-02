@@ -13,18 +13,24 @@ export default class SceneScores extends Phaser.Scene {
 
   preload() {}
 
-  create() {
+  create(data) {
+    const chapter = (data && data.chapter) || 1;
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.W);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.S);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.A);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.D);
 
-    // фон — город, справа — гопник, читающий книгу
+    // фон — город, справа — гопник (глава 1) или поклонница (глава 2), читающий книгу
     this.bg = this.add.image(512, 320, 'deepspace');
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
-    this.gopnik = this.add.image(this.game.config.width * 0.85, this.game.config.height * 0.62, 'score-gopnik');
-    this.gopnik.setScale(0.38);
+    if (chapter === 2) {
+      this.fan = this.add.image(this.game.config.width * 0.85, this.game.config.height * 0.62, 'score-fan');
+      this.fan.setScale(0.9);
+    } else {
+      this.gopnik = this.add.image(this.game.config.width * 0.85, this.game.config.height * 0.62, 'score-gopnik');
+      this.gopnik.setScale(0.38);
+    }
 
     const currentScore = Storage.getCurrentScore();
 
