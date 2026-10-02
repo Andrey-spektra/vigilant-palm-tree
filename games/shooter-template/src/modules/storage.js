@@ -46,6 +46,17 @@ const Storage = (() => {
   function isGameFinished() {
     return safeStoreGet('gameFinished') === true;
   }
+
+  // Пол автора-персонажа: 'male' | 'female'. null — выбор ещё не сделан.
+  function getAuthorGender() {
+    const v = safeStoreGet('authorGender');
+    return v === 'male' || v === 'female' ? v : null;
+  }
+
+  function setAuthorGender(g) {
+    if (g === 'male' || g === 'female') safeStoreSet('authorGender', g);
+  }
+
   return {
     currentScore,
     getCurrentScore,
@@ -53,6 +64,8 @@ const Storage = (() => {
     currentAmmo,
     setGameFinished,
     isGameFinished,
+    getAuthorGender,
+    setAuthorGender,
   };
 })();
 

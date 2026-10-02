@@ -36,6 +36,22 @@ export default class SceneMainMenu extends Phaser.Scene {
     ${playLabel}</button>`;
     this.play = this.add.dom(this.game.config.width * 0.5, this.game.config.height * 0.72, play, 'background-color: transparent; width: 260px; height: 0;');
 
+    // Кнопка «Выбор героя» — перед игрой можно сменить пол персонажа (автор — мужчина/женщина).
+    const gender = document.createElement('div');
+    gender.innerHTML = `<button type='button' id='gender'
+    style='background-color: rgba(12, 17, 28, 0.92);
+    border: 2px solid white;
+    border-radius: 5px;
+    color: white;
+    padding: 0.4rem 1rem;
+    text-transform: uppercase;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;'>
+    Выбор героя</button>`;
+    this.gender = this.add.dom(this.game.config.width * 0.5, this.game.config.height * 0.60, gender, 'background-color: transparent; width: 200px; height: 0;');
+
     // Кнопка «Подсказка» — открывает окно с приветствием и управлением
     const hint = document.createElement('div');
     hint.innerHTML = `<button type='button' id='hint'
@@ -91,11 +107,20 @@ export default class SceneMainMenu extends Phaser.Scene {
     document.body.appendChild(this.modal);
 
     const playBtn = document.getElementById('play');
+    const genderBtn = document.getElementById('gender');
     const hintBtn = document.getElementById('hint');
     const overlay = this.modal.querySelector('#hintOverlay');
     const closeBtn = this.modal.querySelector('#hintClose');
 
-    playBtn.onclick = () => this.scene.start('SceneMain');
+    playBtn.onclick = () => {
+      // Если пол ещё не выбран — сначала сцена выбора персонажа.
+      if (!Storage.getAuthorGender()) {
+        this.scene.start('SceneGender');
+      } else {
+        this.scene.start('SceneMain');
+      }
+    };
+    genderBtn.onclick = () => this.scene.start('SceneGender');
     hintBtn.onclick = () => { this.modal.style.display = 'block'; };
     closeBtn.onclick = () => { this.modal.style.display = 'none'; };
     overlay.onclick = (e) => { if (e.target === overlay) this.modal.style.display = 'none'; };

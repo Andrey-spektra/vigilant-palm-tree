@@ -53,6 +53,9 @@ export class Player extends Entity {
     super(scene, x, y, key || 'sprPlayer', 'Player');
     // Глава 2: поклонница (sprFan) — тот же герой, другой спрайт и оружие «Ещё».
     this.isFan = (key === 'sprFan');
+    // Пол автора (глава 1): писатель или писательница — выбор игрока в начале игры.
+    this.isFemaleAuthor = (key === 'sprPlayerFemale');
+    this.playerKey = key || 'sprPlayer';
     this.setData('speed', 200);
     this.setData('isShooting', false);
     this.setData('timerShootDelay', 10);
@@ -61,7 +64,7 @@ export class Player extends Entity {
     this.setData('hp', 3);
     this.setData('invulnUntil', 0);
 
-    this.play(this.isFan ? 'sprFan' : 'sprPlayer');
+    this.play(this.playerKey);
   }
 
   // возвращает true, если игрок получил урон и ещё жив; false если умер
