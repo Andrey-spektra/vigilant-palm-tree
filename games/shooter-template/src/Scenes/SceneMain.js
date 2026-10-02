@@ -104,7 +104,7 @@ export default class SceneMain extends Phaser.Scene {
           this,
           this.game.config.width * 0.5,
           this.game.config.height * 0.5,
-          chapter === 2 ? 'sprFan' : 'sprPlayer',
+          'sprPlayer', // в обеих главах играет Автор (словами); sprFan — спрайт врагов-поклонниц
         );
 
         this.touchControls = new TouchControls(this);
