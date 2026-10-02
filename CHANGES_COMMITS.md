@@ -107,3 +107,13 @@ games/shooter-template_bak/src/tests/submitScore.test.js
 games/shooter-template_bak/webpack.config.js
 games/shooter-template_bak/СИЛА_СЛОВА.html
 one_chapter_infinite_words.patch
+
+## Коммит 4d650ed — удаление мёртвого кода (артефакты старой версии игры)
+Удалено из исходников (не файловые артефакты, а код):
+- entities.js: классы ChaserShip и CarrierShip (55 строк) — нигде не создавались через new
+- SceneMain.js: неиспользуемые импорты PlayerLaser, ChaserShip, CarrierShip
+- Файлы ассетов (исчезли вместе с удалёнными классами):
+games/shooter-template/assets/sprEnemy1.png
+games/shooter-template/assets/sprEnemy2.png
+games/shooter-template/assets/sprLaserEnemy0.png
+games/shooter-template/assets/sprLaserPlayer.png
