@@ -12,7 +12,7 @@ export default {
   sprMat:             { file: 'assets/sprMat.png',      type: 'image' },
   sprPlayer:          { file: 'assets/sprPlayer.png',   type: 'spritesheet', frameWidth: 89, frameHeight: 160 },
   // Писательница — женский вариант героя (5 кадров по 89x160)
-  sprPlayerFemale:    { file: 'assets/sprPlayerFemale.png', type: 'spritesheet', frameWidth: 256, frameHeight: 154 },
+  sprPlayerFemale:    { file: 'assets/sprPlayerFemale.png', type: 'spritesheet', frameWidth: 89, frameHeight: 160 },
   // Поклонница — игрок второй главы (спрайт-лист собран из файлов 1..5)
   sprFan:             { file: 'assets/sprFan.png',      type: 'spritesheet', frameWidth: 89, frameHeight: 160 },
   // Слово поклонницы «Ещё» (снаряд второй главы)
