@@ -1,5 +1,5 @@
-# Build artifacts
-build/
+# Dependencies
+node_modules/
 
-# Temp files
-_tmp_*
+# Build artifacts
+dist/
