@@ -1,1 +1,5 @@
-(empty)
+# Build artifacts
+build/
+
+# Temp files
+_tmp_*

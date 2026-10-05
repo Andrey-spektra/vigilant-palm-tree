@@ -11,10 +11,10 @@ export default {
   sprWord:            { file: 'assets/sprWord.png',     type: 'image' },
   sprMat:             { file: 'assets/sprMat.png',      type: 'image' },
   sprPlayer:          { file: 'assets/sprPlayer.png',   type: 'spritesheet', frameWidth: 89, frameHeight: 160 },
-  // Писательница — женский вариант героя (5 кадров по 89x160)
-  sprPlayerFemale:    { file: 'assets/sprPlayerFemale.png', type: 'spritesheet', frameWidth: 89, frameHeight: 160 },
-  // Поклонница — игрок второй главы (спрайт-лист собран из файлов 1..5)
-  sprFan:             { file: 'assets/sprFan.png',      type: 'spritesheet', frameWidth: 89, frameHeight: 160 },
+  // Писательница — женский вариант героя (5 кадров по 118x160)
+  sprPlayerFemale:    { file: 'assets/sprPlayerFemale.png', type: 'spritesheet', frameWidth: 118, frameHeight: 160 },
+  // Поклонница — враг второй главы (спрайт-лист 750x160, 5 кадров по 150x160, из файлов 1..5)
+  sprFan:             { file: 'assets/sprFan.png',      type: 'spritesheet', frameWidth: 150, frameHeight: 160 },
   // Слово поклонницы «Ещё» (снаряд второй главы)
   sprEsho:            { file: 'assets/sprEsho.png',     type: 'image' },
   // Поклонница на экране итогов второй главы
