@@ -51,9 +51,9 @@ export class Entity extends Phaser.GameObjects.Sprite {
 export class Player extends Entity {
   constructor(scene, x, y, key) {
     super(scene, x, y, key || 'sprPlayer', 'Player');
-    // Глава 2: поклонница (sprFan) — тот же герой, другой спрайт и оружие «Ещё».
-    this.isFan = (key === 'sprFan');
-    // Пол автора (глава 1): писатель или писательница — выбор игрока в начале игры.
+    // Герой в обеих главах — автор (писатель/писательница по выбору игрока).
+    this.isFan = false; // наследуемый флаг: поклонница теперь только враг (глава 2)
+    // Пол автора: писатель или писательница — выбор игрока в начале игры.
     this.isFemaleAuthor = (key === 'sprPlayerFemale');
     this.playerKey = key || 'sprPlayer';
     this.setData('speed', 200);
@@ -166,8 +166,8 @@ export class Player extends Entity {
         // выстрел из «головы» — выше центра, смещение по направлению
         const muzzleX = this.x + dir * 45;
         const muzzleY = this.y - 55;
-        const laser = new PlayerLaser(this.scene, muzzleX, muzzleY, dir,
-          this.isFan ? 'sprEsho' : 'sprWord');
+        // Герой всегда автор (писатель/писательница) — стреляет словами в обеих главах.
+        const laser = new PlayerLaser(this.scene, muzzleX, muzzleY, dir, 'sprWord');
         this.scene.playerLasers.add(laser);
 
         // звук выстрела (слово) — безопасный проигрыватель
@@ -183,14 +183,8 @@ export class Player extends Entity {
             this.scene.authorShootSpeech.destroy();
             this.scene.authorShootSpeech = null;
           }
-          const phrases = this.isFan ? [
-            'Ещё!',
-            'Ещё!!!',
-            'Давай ещё!',
-            'Я хочу ещё!',
-            'Пиши ещё!',
-            'Не останавливайся!',
-          ] : [
+          // Реплики при стрельбе: всегда авторские (герой в обеих главах — писатель).
+          const phrases = [
             'Как тебе моя сатира?',
             'Получи каламбуром',
             'Держи абзац',
@@ -328,7 +322,13 @@ export class GunShip extends Entity {
 
     // фраза при появлении (случайная из списка)
     const phrases = this.isFanEnemy ? [
-      'Где моя прода?',
+      'Ну где моя глава?!',
+      'Я жду продолжения!',
+      'Прода! Где моя прода?',
+      'Пиши быстрее, я замерзла ждать!',
+      'Обещал новую книгу к осени!',
+      'Фанаты всю ночь у подъезда!',
+      'Я всё прочла. ДАЙ ЕЩЁ.',
     ] : [
       'Писатель? А я художник — дай рожу распишу.',
       'Чё, голодный? Давай, угощу люлями.',
