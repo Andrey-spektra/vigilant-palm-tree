@@ -1,1 +1,5 @@
-(empty)
+# Build artifacts
+game-build/build/
+
+# Dependencies
+node_modules/

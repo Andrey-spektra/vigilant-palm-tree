@@ -251,12 +251,16 @@ export class PlayerLaser extends Entity {
 }
 
 export class EnemyLaser extends Entity {
-  constructor(scene, x, y, dir) {
-    super(scene, x, y, 'sprMat');
+  constructor(scene, x, y, dir, key) {
+    super(scene, x, y, key || 'sprMat');
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
-    this.body.velocity.x = d * 200; // летит строго вбок — в сторону, куда смотрит гопник
+    this.body.velocity.x = d * 200; // летит строго вбок — в сторону, куда смотрит враг
     this.body.velocity.y = 0;
-    this.setTint(0xffc766); // цвет мата — как у реплик гопника
+    if ((key || 'sprMat') !== 'sprMat') {
+      // снаряд поклонницы «Ещё» — без тонировки мата
+    } else {
+      this.setTint(0xffc766); // цвет мата — как у реплик гопника
+    }
   }
 }
 
@@ -308,17 +312,19 @@ export class ChaserShip extends Entity {
 
 export class GunShip extends Entity {
   constructor(scene, x, y, dir, chapter) {
-    super(scene, x, y, 'sprEnemy0', 'GunShip');
+    // Глава 2: вместо гопника — поклонница (женщина-враг, спрайт sprFan).
+    const isFanEnemy = chapter === 2;
+    const enemyKey = isFanEnemy ? 'sprFan' : 'sprEnemy0';
+    super(scene, x, y, enemyKey, 'GunShip');
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
-    this.play('sprEnemy0');
+    this.play(enemyKey);
 
     this.setFlipX(d < 0);
     this.dir = d;
     this.body.velocity.x = this.dir * Phaser.Math.Between(40, 70); // идёт вбок
 
-    // Глава 2: вместо гопника появляется поклонница — тот же спрайт и правила,
-    // только свои реплики.
-    this.isFanEnemy = chapter === 2;
+    // Флаг врага-поклонницы (глава 2) задан в начале конструктора.
+    this.isFanEnemy = isFanEnemy;
 
     // фраза при появлении (случайная из списка)
     const phrases = this.isFanEnemy ? [
@@ -380,6 +386,7 @@ export class GunShip extends Entity {
           muzzleX,
           muzzleY,
           this.dir,
+          this.isFanEnemy ? 'sprEsho' : 'sprMat',
         );
         laser.setScale(this.scaleX * 0.7);
         this.scene.enemyLasers.add(laser);
