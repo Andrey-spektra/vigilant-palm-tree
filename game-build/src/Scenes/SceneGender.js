@@ -16,6 +16,8 @@ export default class SceneGender extends Phaser.Scene {
   preload() {}
 
   create() {
+    // Очистка кнопок выбора от предыдущих запусков сцены.
+    document.querySelectorAll('#pickMale, #pickFemale').forEach((el) => el.remove());
     // Анимации для превью спрайтов (в SceneMain они создаются позже — exists-страховки там).
     if (!this.anims.exists('sprPlayer')) {
       this.anims.create({
