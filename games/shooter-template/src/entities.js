@@ -308,17 +308,17 @@ export class ChaserShip extends Entity {
 
 export class GunShip extends Entity {
   constructor(scene, x, y, dir, chapter) {
-    super(scene, x, y, 'sprEnemy0', 'GunShip');
+    // Глава 2: вместо гопника (sprEnemy0) врагом становится поклонница —
+    // женщина (sprFan). В главе 1 остаётся гопник.
+    this.isFanEnemy = chapter === 2;
+    const enemyKey = this.isFanEnemy ? 'sprFan' : 'sprEnemy0';
+    super(scene, x, y, enemyKey, 'GunShip');
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
-    this.play('sprEnemy0');
+    this.play(enemyKey);
 
     this.setFlipX(d < 0);
     this.dir = d;
     this.body.velocity.x = this.dir * Phaser.Math.Between(40, 70); // идёт вбок
-
-    // Глава 2: вместо гопника появляется поклонница — тот же спрайт и правила,
-    // только свои реплики.
-    this.isFanEnemy = chapter === 2;
 
     // фраза при появлении (случайная из списка)
     const phrases = this.isFanEnemy ? [

@@ -51,9 +51,9 @@ export class Entity extends Phaser.GameObjects.Sprite {
 export class Player extends Entity {
   constructor(scene, x, y, key) {
     super(scene, x, y, key || 'sprPlayer', 'Player');
-    // Герой в обеих главах — автор (писатель/писательница по выбору игрока).
-    this.isFan = false; // наследуемый флаг: поклонница теперь только враг (глава 2)
-    // Пол автора: писатель или писательница — выбор игрока в начале игры.
+    // Глава 2: поклонница (sprFan) — тот же герой, другой спрайт и оружие «Ещё».
+    this.isFan = (key === 'sprFan');
+    // Пол автора (глава 1): писатель или писательница — выбор игрока в начале игры.
     this.isFemaleAuthor = (key === 'sprPlayerFemale');
     this.playerKey = key || 'sprPlayer';
     this.setData('speed', 200);
@@ -166,8 +166,8 @@ export class Player extends Entity {
         // выстрел из «головы» — выше центра, смещение по направлению
         const muzzleX = this.x + dir * 45;
         const muzzleY = this.y - 55;
-        // Герой всегда автор (писатель/писательница) — стреляет словами в обеих главах.
-        const laser = new PlayerLaser(this.scene, muzzleX, muzzleY, dir, 'sprWord');
+        const laser = new PlayerLaser(this.scene, muzzleX, muzzleY, dir,
+          this.isFan ? 'sprEsho' : 'sprWord');
         this.scene.playerLasers.add(laser);
 
         // звук выстрела (слово) — безопасный проигрыватель
@@ -183,8 +183,14 @@ export class Player extends Entity {
             this.scene.authorShootSpeech.destroy();
             this.scene.authorShootSpeech = null;
           }
-          // Реплики при стрельбе: всегда авторские (герой в обеих главах — писатель).
-          const phrases = [
+          const phrases = this.isFan ? [
+            'Ещё!',
+            'Ещё!!!',
+            'Давай ещё!',
+            'Я хочу ещё!',
+            'Пиши ещё!',
+            'Не останавливайся!',
+          ] : [
             'Как тебе моя сатира?',
             'Получи каламбуром',
             'Держи абзац',
@@ -245,16 +251,12 @@ export class PlayerLaser extends Entity {
 }
 
 export class EnemyLaser extends Entity {
-  constructor(scene, x, y, dir, key) {
-    super(scene, x, y, key || 'sprMat');
+  constructor(scene, x, y, dir) {
+    super(scene, x, y, 'sprMat');
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
-    this.body.velocity.x = d * 200; // летит строго вбок — в сторону, куда смотрит враг
+    this.body.velocity.x = d * 200; // летит строго вбок — в сторону, куда смотрит гопник
     this.body.velocity.y = 0;
-    if ((key || 'sprMat') !== 'sprMat') {
-      // снаряд поклонницы «Ещё» — без тонировки мата
-    } else {
-      this.setTint(0xffc766); // цвет мата — как у реплик гопника
-    }
+    this.setTint(0xffc766); // цвет мата — как у реплик гопника
   }
 }
 
@@ -306,9 +308,10 @@ export class ChaserShip extends Entity {
 
 export class GunShip extends Entity {
   constructor(scene, x, y, dir, chapter) {
-    // Глава 2: вместо гопника — поклонница (женщина-враг, спрайт sprFan).
-    const isFanEnemy = chapter === 2;
-    const enemyKey = isFanEnemy ? 'sprFan' : 'sprEnemy0';
+    // Глава 2: вместо гопника (sprEnemy0) врагом становится поклонница —
+    // женщина (sprFan). В главе 1 остаётся гопник.
+    this.isFanEnemy = chapter === 2;
+    const enemyKey = this.isFanEnemy ? 'sprFan' : 'sprEnemy0';
     super(scene, x, y, enemyKey, 'GunShip');
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
     this.play(enemyKey);
@@ -317,18 +320,9 @@ export class GunShip extends Entity {
     this.dir = d;
     this.body.velocity.x = this.dir * Phaser.Math.Between(40, 70); // идёт вбок
 
-    // Флаг врага-поклонницы (глава 2) задан в начале конструктора.
-    this.isFanEnemy = isFanEnemy;
-
     // фраза при появлении (случайная из списка)
     const phrases = this.isFanEnemy ? [
-      'Ну где моя глава?!',
-      'Я жду продолжения!',
-      'Прода! Где моя прода?',
-      'Пиши быстрее, я замерзла ждать!',
-      'Обещал новую книгу к осени!',
-      'Фанаты всю ночь у подъезда!',
-      'Я всё прочла. ДАЙ ЕЩЁ.',
+      'Где моя прода?',
     ] : [
       'Писатель? А я художник — дай рожу распишу.',
       'Чё, голодный? Давай, угощу люлями.',
@@ -386,7 +380,6 @@ export class GunShip extends Entity {
           muzzleX,
           muzzleY,
           this.dir,
-          this.isFanEnemy ? 'sprEsho' : 'sprMat',
         );
         laser.setScale(this.scaleX * 0.7);
         this.scene.enemyLasers.add(laser);
