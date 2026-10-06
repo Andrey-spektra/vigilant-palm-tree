@@ -64,7 +64,10 @@ export class Player extends Entity {
     this.setData('hp', 3);
     this.setData('invulnUntil', 0);
 
-    this.play(this.playerKey);
+    // play() не внутри конструктора: если анимация по какой-то причине
+    // ещё не зарегистрирована, исключение в конструкторе убьёт и игрока,
+    // и весь create() сцены (дальше код не дойдёт). Переносим в try/catch.
+    try { this.play(this.playerKey); } catch (e) { /* остаёмся на статичном кадре */ }
   }
 
   // возвращает true, если игрок получил урон и ещё жив; false если умер
@@ -308,13 +311,17 @@ export class ChaserShip extends Entity {
 
 export class GunShip extends Entity {
   constructor(scene, x, y, dir, chapter) {
+    // ВАЖНО: обращение к this возможно ТОЛЬКО после super().
+    // (Раньше здесь до super стояло `this.isFanEnemy = ...`, что на
+    // минифицированном коде вызывало TypeError и убивало спавн врагов.)
+    const fanEnemy = chapter === 2;
     // Глава 2: вместо гопника (sprEnemy0) врагом становится поклонница —
     // женщина (sprFan). В главе 1 остаётся гопник.
-    this.isFanEnemy = chapter === 2;
-    const enemyKey = this.isFanEnemy ? 'sprFan' : 'sprEnemy0';
+    const enemyKey = fanEnemy ? 'sprFan' : 'sprEnemy0';
     super(scene, x, y, enemyKey, 'GunShip');
+    this.isFanEnemy = fanEnemy;
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
-    this.play(enemyKey);
+    try { this.play(enemyKey); } catch (e) { /* без анимации — статичный кадр */ }
 
     this.setFlipX(d < 0);
     this.dir = d;
