@@ -1,5 +1,2 @@
-# Compiled and build artifacts
-game-build/
-
-# Dependencies
-node_modules/
+# Build artifacts
+game-build/build/
