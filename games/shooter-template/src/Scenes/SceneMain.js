@@ -123,13 +123,15 @@ export default class SceneMain extends Phaser.Scene {
       });
     }
 
-    // Спрайт автора зависит от выбора пола в начале игры; глава 2 — поклонница.
+    // Спрайт автора зависит от выбора пола в начале игры и НЕ меняется
+    // между главами: в главе 2 герой остаётся тем же писателем/писательницей.
+    // Поклонница (sprFan) — это ВРАГ главы 2, а не герой.
     const authorKey = authorGender === 'female' ? 'sprPlayerFemale' : 'sprPlayer';
     this.player = new Player(
           this,
           this.game.config.width * 0.5,
           this.game.config.height * 0.5,
-          chapter === 2 ? 'sprFan' : authorKey,
+          authorKey,
         );
 
         this.touchControls = new TouchControls(this);
