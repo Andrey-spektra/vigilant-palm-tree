@@ -123,8 +123,9 @@ export default class SceneMain extends Phaser.Scene {
       });
     }
 
-    // Спрайт автора зависит от выбора пола в начале игры и действует в обеих главах.
-    // В главе 2 меняется только враг: вместо гопников — поклонница (GunShip с флагом isFanEnemy).
+    // Спрайт автора зависит от выбора пола в начале игры и НЕ меняется
+    // между главами: в главе 2 герой остаётся тем же писателем/писательницей.
+    // Поклонница (sprFan) — это ВРАГ главы 2, а не герой.
     const authorKey = authorGender === 'female' ? 'sprPlayerFemale' : 'sprPlayer';
     this.player = new Player(
           this,
@@ -289,8 +290,7 @@ export default class SceneMain extends Phaser.Scene {
       this.player.body.setVelocity(0, 0);
       this.player.anims.stop();
       // произносит последнюю фразу
-      // Герой в обеих главах один и тот же — автор (писатель/писательница по выбору игрока).
-      const phrase = 'Мои слова на исходе...';
+      const phrase = chapter === 2 ? 'Не-е-ет, я хотела ещё!' : 'Мои слова на исходе...';
       const text = this.add.text(
         this.player.x,
         this.player.y - 90,
