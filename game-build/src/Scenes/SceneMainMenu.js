@@ -13,6 +13,13 @@ export default class SceneMainMenu extends Phaser.Scene {
   preload() {}
 
   create() {
+    // Очистка DOM-кнопок предыдущих сцен (и своих дубликатов), чтобы кнопки
+    // не накапливались поверх новой сцены.
+    ['button', 'play', 'gender', 'hint', 'pickMale', 'pickFemale'].forEach((id) => {
+      document.querySelectorAll(`#${id}`).forEach((el) => el.remove());
+    });
+    document.querySelectorAll('.game-dom-modal').forEach((el) => el.remove());
+
     this.bg = this.add.image(512, 320, 'cover');
     this.bg.setDisplaySize(this.game.config.width, this.game.config.height);
 
@@ -70,6 +77,7 @@ export default class SceneMainMenu extends Phaser.Scene {
 
     // Программно лепим модальное окно в body, чтобы оно было поверх всего
     this.modal = document.createElement('div');
+    this.modal.className = 'game-dom-modal';
     this.modal.innerHTML = `
       <div id="hintOverlay" style="
         position: fixed; inset: 0; z-index: 99999;
