@@ -86,42 +86,29 @@ export default class SceneMain extends Phaser.Scene {
                   fill: '#fff',
                 });
 
-    this.anims.create({
-      key: 'sprEnemy0',
-      frames: this.anims.generateFrameNumbers('sprEnemy0'),
-      frameRate: 6,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: 'sprExplosion',
-      frames: this.anims.generateFrameNumbers('sprExplosion'),
-      frameRate: 20,
-      repeat: 0,
-    });
-    this.anims.create({
-      key: 'sprPlayer',
-      frames: this.anims.generateFrameNumbers('sprPlayer'),
-      frameRate: 6,
-      repeat: -1,
-    });
+    // ВАЖНО: все create() только через safeAnim(). Если вызвать anims.create()
+    // с ключом, который уже существует (например, при повторном заходе в сцену
+    // после перезапуска), Phaser бросает исключение прямо внутри create() —
+    // сцена умирает до создания спавнера врагов, игра «грузится и висит».
+    const safeAnim = (key, frameRate, rep) => {
+      if (this.anims.exists(key)) return;
+      try {
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers(key),
+          frameRate,
+          repeat: rep,
+        });
+      } catch (e) { /* анимация уже есть — пропускаем, спавн важнее */ }
+    };
+
+    safeAnim('sprEnemy0', 6, -1);
+    safeAnim('sprExplosion', 20, 0);
+    safeAnim('sprPlayer', 6, -1);
     // Анимация писательницы — женский вариант героя (выбор игрока в начале игры).
-    if (!this.anims.exists('sprPlayerFemale')) {
-      this.anims.create({
-        key: 'sprPlayerFemale',
-        frames: this.anims.generateFrameNumbers('sprPlayerFemale'),
-        frameRate: 6,
-        repeat: -1,
-      });
-    }
-    // Анимация поклонницы (глава 2) — те же кадры 0..4, что и у спрайт-листа.
-    if (!this.anims.exists('sprFan')) {
-      this.anims.create({
-        key: 'sprFan',
-        frames: this.anims.generateFrameNumbers('sprFan'),
-        frameRate: 6,
-        repeat: -1,
-      });
-    }
+    safeAnim('sprPlayerFemale', 6, -1);
+    // Анимация поклонницы (ВРАГ главы 2).
+    safeAnim('sprFan', 6, -1);
 
     // Спрайт автора зависит от выбора пола в начале игры и НЕ меняется
     // между главами: в главе 2 герой остаётся тем же писателем/писательницей.

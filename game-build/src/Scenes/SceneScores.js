@@ -14,6 +14,10 @@ export default class SceneScores extends Phaser.Scene {
   preload() {}
 
   create(data) {
+    // Убираем свои DOM-кнопки при выходе из сцены, чтобы они не оставались поверх других сцен.
+    this.events.once('shutdown', () => {
+      document.querySelectorAll('#button').forEach((el) => el.remove());
+    });
     const chapter = (data && data.chapter) || 1;
     // Автор — женщина: её спрайт на экране итогов вместо поклонницы.
     const femaleAuthor = Boolean(data && data.femaleAuthor);

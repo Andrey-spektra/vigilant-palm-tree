@@ -13,6 +13,21 @@ export default class SceneMainMenu extends Phaser.Scene {
   preload() {}
 
   create() {
+    // Полная очистка DOM-контейнера Phaser и модалок предыдущих сцен.
+    // Кнопки в игре — это DOM-элементы (this.add.dom), которые Phaser НЕ
+    // удаляет при переключении сцен; раньше они оставались «висящими» поверх
+    // меню (кнопка «В меню», кнопки выбора персонажа). На главном экране
+    // других DOM-элементов быть не должно — вычищаем ВСЁ содержимое
+    // контейнера game.domContainer, а не только известные id.
+    const domContainer = this.game.domContainer;
+    if (domContainer) {
+      while (domContainer.firstChild) domContainer.removeChild(domContainer.firstChild);
+    }
+    // Страховка: элементы могли попасть напрямую в body/parent канваса.
+    document.querySelectorAll('#button, #play, #gender, #hint, #pickMale, #pickFemale')
+      .forEach((el) => el.remove());
+    document.querySelectorAll('.game-dom-modal').forEach((el) => el.remove());
+
     this.bg = this.add.image(512, 320, 'cover');
     this.bg.setDisplaySize(this.game.config.width, this.game.config.height);
 
@@ -70,6 +85,7 @@ export default class SceneMainMenu extends Phaser.Scene {
 
     // Программно лепим модальное окно в body, чтобы оно было поверх всего
     this.modal = document.createElement('div');
+    this.modal.className = 'game-dom-modal';
     this.modal.innerHTML = `
       <div id="hintOverlay" style="
         position: fixed; inset: 0; z-index: 99999;
