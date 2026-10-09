@@ -89,9 +89,11 @@ export default class SceneStories extends Phaser.Scene {
     screen.id = 'story-screen';
     screen.innerHTML = `
       <section style="
+        display: flex;
+        flex-direction: column;
         width: min(760px, 88vw);
         max-height: 82vh;
-        overflow-y: auto;
+        overflow: hidden;
         box-sizing: border-box;
         padding: 30px 38px;
         border: 2px solid rgba(255,255,255,0.8);
@@ -101,16 +103,25 @@ export default class SceneStories extends Phaser.Scene {
         text-align: center;
         font-family: Arial, sans-serif;
         box-shadow: 0 12px 28px rgba(0,0,0,0.45);">
-        ${isFinalEpigraph ? '' : `<div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.8;margin-bottom:10px;">
-          Сборник рассказов о начинающем авторе · часть ${round} из ${stories.length}
-        </div>`}
-        <h1 style="font-size:30px;line-height:1.2;margin:0 0 22px;">${story.title}</h1>
-        ${story.intro ? `<p style="font-size:18px;line-height:1.55;margin:0 0 22px;">${story.intro}</p>` : ''}
-        <div style="font-size:18px;line-height:1.55;text-align:left;">
-          ${story.entries.map((entry) => `<p style="margin:0 0 14px;">${entry}</p>`).join('')}
+        <div style="
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;">
+          ${isFinalEpigraph ? '' : `<div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.8;margin-bottom:10px;">
+            Сборник рассказов о начинающем авторе · часть ${round} из ${stories.length}
+          </div>`}
+          <h1 style="font-size:30px;line-height:1.2;margin:0 0 22px;">${story.title}</h1>
+          ${story.intro ? `<p style="font-size:18px;line-height:1.55;margin:0 0 22px;">${story.intro}</p>` : ''}
+          <div style="font-size:18px;line-height:1.55;text-align:left;">
+            ${story.entries.map((entry) => `<p style="margin:0 0 14px;">${entry}</p>`).join('')}
+          </div>
+          ${story.signature ? `<p style="font-size:18px;line-height:1.55;text-align:right;margin:24px 0 0;">${story.signature}</p>` : ''}
         </div>
-        ${story.signature ? `<p style="font-size:18px;line-height:1.55;text-align:right;margin:24px 0 0;">${story.signature}</p>` : ''}
         <button id="skip-stories" type="button" style="
+          flex: 0 0 auto;
           margin-top:14px;
           background:rgba(12,17,28,0.95);
           border:2px solid white;
