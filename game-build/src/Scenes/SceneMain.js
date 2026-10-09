@@ -332,9 +332,10 @@ export default class SceneMain extends Phaser.Scene {
       if (chapter < 3) {
         this.scene.start('SceneStories', { round: chapter + 1 });
       } else {
-        this.scene.start('SceneStories', {
-          round: 4,
+        this.scene.start('SceneScores', {
+          chapter,
           femaleAuthor: authorGender === 'female',
+          showEpilogue: true,
         });
       }
     };

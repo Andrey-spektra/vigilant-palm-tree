@@ -51,24 +51,14 @@ const stories = [
   },
 ];
 
-const finalEpigraph = {
-  title: 'Невысказанное',
-  entries: [
-    'Однажды он прочитал, что самое прекрасное — это невысказанное, то, чего нельзя описать словами.',
-    'После этого понял, что пишет великолепно.',
-  ],
-  signature: 'Андрей Шитиков',
-};
-
 export default class SceneStories extends Phaser.Scene {
   constructor() {
     super({ key: 'SceneStories' });
   }
 
   create(data) {
-    const round = data && data.round >= 1 && data.round <= stories.length + 1 ? data.round : 1;
-    const isFinalEpigraph = round === stories.length + 1;
-    const story = isFinalEpigraph ? finalEpigraph : stories[round - 1];
+    const round = data && data.round >= 1 && data.round <= stories.length ? data.round : 1;
+    const story = stories[round - 1];
 
     const { domContainer } = this.game;
     if (domContainer) {
@@ -92,6 +82,7 @@ export default class SceneStories extends Phaser.Scene {
         display: flex;
         flex-direction: column;
         width: min(760px, 88vw);
+        height: min(82vh, 520px);
         max-height: 82vh;
         overflow: hidden;
         box-sizing: border-box;
@@ -110,15 +101,14 @@ export default class SceneStories extends Phaser.Scene {
           overscroll-behavior: contain;
           -webkit-overflow-scrolling: touch;
           touch-action: pan-y;">
-          ${isFinalEpigraph ? '' : `<div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.8;margin-bottom:10px;">
+          <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.8;margin-bottom:10px;">
             Сборник рассказов о начинающем авторе · часть ${round} из ${stories.length}
-          </div>`}
+          </div>
           <h1 style="font-size:30px;line-height:1.2;margin:0 0 22px;">${story.title}</h1>
           ${story.intro ? `<p style="font-size:18px;line-height:1.55;margin:0 0 22px;">${story.intro}</p>` : ''}
           <div style="font-size:18px;line-height:1.55;text-align:left;">
             ${story.entries.map((entry) => `<p style="margin:0 0 14px;">${entry}</p>`).join('')}
           </div>
-          ${story.signature ? `<p style="font-size:18px;line-height:1.55;text-align:right;margin:24px 0 0;">${story.signature}</p>` : ''}
         </div>
         <button id="skip-stories" type="button" style="
           flex: 0 0 auto;
@@ -136,17 +126,13 @@ export default class SceneStories extends Phaser.Scene {
       </section>`;
 
     this.add.dom(this.game.config.width * 0.5, this.game.config.height * 0.5, screen,
-      'background-color: transparent; width: 780px; max-width: 90vw;');
+      'background-color: transparent; width: 780px; max-width: 90vw; height: min(82vh, 520px);');
 
+    screen.querySelector('#story-screen > section > div').addEventListener('wheel', (event) => {
+      event.stopPropagation();
+    });
     screen.querySelector('#skip-stories').onclick = () => {
-      if (isFinalEpigraph) {
-        this.scene.start('SceneScores', {
-          chapter: stories.length,
-          femaleAuthor: data && data.femaleAuthor,
-        });
-      } else {
-        this.scene.start('SceneMain', { chapter: round });
-      }
+      this.scene.start('SceneMain', { chapter: round });
     };
   }
 }
