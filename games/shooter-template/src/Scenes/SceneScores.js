@@ -75,7 +75,6 @@ export default class SceneScores extends Phaser.Scene {
       this.add.text(this.game.config.width * 0.38, 275, 'Невысказанное', {
         fontFamily: 'Arial, sans-serif',
         fontSize: 25,
-        fontStyle: 'bold',
         color: '#ffffff',
       }).setOrigin(0, 0.5);
 

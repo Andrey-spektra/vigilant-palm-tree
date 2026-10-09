@@ -99,6 +99,7 @@ export default class SceneStories extends Phaser.Scene {
           min-height: 0;
           overflow-y: auto;
           overscroll-behavior: contain;
+          overflow-anchor: none;
           -webkit-overflow-scrolling: touch;
           touch-action: pan-y;">
           <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.8;margin-bottom:10px;">
@@ -128,9 +129,12 @@ export default class SceneStories extends Phaser.Scene {
     this.add.dom(this.game.config.width * 0.5, this.game.config.height * 0.5, screen,
       'background-color: transparent; width: 780px; max-width: 90vw; height: min(82vh, 520px);');
 
-    screen.querySelector('#story-screen > section > div').addEventListener('wheel', (event) => {
-      event.stopPropagation();
-    });
+    const storyContent = screen.querySelector('#story-screen > section > div');
+    storyContent.addEventListener('wheel', (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      storyContent.scrollTop += event.deltaY;
+    }, { passive: false });
     screen.querySelector('#skip-stories').onclick = () => {
       this.scene.start('SceneMain', { chapter: round });
     };
