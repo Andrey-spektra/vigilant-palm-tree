@@ -100,8 +100,7 @@ export default class SceneStories extends Phaser.Scene {
           overflow-y: auto;
           overscroll-behavior: contain;
           overflow-anchor: none;
-          -webkit-overflow-scrolling: touch;
-          touch-action: pan-y;">
+          touch-action: none;">
           <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.8;margin-bottom:10px;">
             Сборник рассказов о начинающем авторе · часть ${round} из ${stories.length}
           </div>
@@ -132,9 +131,40 @@ export default class SceneStories extends Phaser.Scene {
     const storyContent = screen.querySelector('#story-screen > section > div');
     storyContent.addEventListener('wheel', (event) => {
       event.preventDefault();
-      event.stopImmediatePropagation();
+      event.stopPropagation();
       storyContent.scrollTop += event.deltaY;
     }, { passive: false });
+
+    let activePointerId = null;
+    let touchStartY = 0;
+    let touchStartScrollTop = 0;
+    storyContent.addEventListener('pointerdown', (event) => {
+      if (event.pointerType !== 'touch') return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      activePointerId = event.pointerId;
+      touchStartY = event.clientY;
+      touchStartScrollTop = storyContent.scrollTop;
+      storyContent.setPointerCapture(event.pointerId);
+    }, { passive: false });
+    storyContent.addEventListener('pointermove', (event) => {
+      if (event.pointerId !== activePointerId) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      storyContent.scrollTop = touchStartScrollTop + touchStartY - event.clientY;
+    }, { passive: false });
+    const stopTouchScroll = (event) => {
+      if (event.pointerId === activePointerId) {
+        event.preventDefault();
+        event.stopPropagation();
+        activePointerId = null;
+      }
+    };
+    storyContent.addEventListener('pointerup', stopTouchScroll, { passive: false });
+    storyContent.addEventListener('pointercancel', stopTouchScroll, { passive: false });
+
     screen.querySelector('#skip-stories').onclick = () => {
       this.scene.start('SceneMain', { chapter: round });
     };
