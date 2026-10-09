@@ -63,8 +63,10 @@ export default class SceneMain extends Phaser.Scene {
     this.bg = this.add.image(512, 320, 'deepspace');
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
-    stageText = this.add.text(250, 16,
-      chapter === 1 ? 'Глава 1 — бесконечные слова' : 'Глава 2 — поклонница говорит «Ещё»', {
+    const stageLabel = chapter === 2
+      ? 'Раунд 2 — поклонница говорит «Ещё»'
+      : `Раунд ${chapter} из 3 — ${chapter === 1 ? 'начинающий автор' : 'новая глава'}`;
+    stageText = this.add.text(250, 16, stageLabel, {
         fontSize: '32px',
         fill: '#fff',
       });
@@ -325,15 +327,14 @@ export default class SceneMain extends Phaser.Scene {
       }
     });
 
-    // Переход между главами: 1 -> 2 (поклонница), 2 -> экран итогов.
+    // После раундов 1 и 2 показываем следующую часть рассказов.
     const nextScene = () => {
-      if (chapter === 1) {
-        this.scene.start('SceneMain', { chapter: 2 });
+      if (chapter < 3) {
+        this.scene.start('SceneStories', { round: chapter + 1 });
       } else if (authorGender === 'female') {
-        // Автор — женщина: во втором томе она сама говорит «Ещё».
-        this.scene.start('SceneScores', { chapter: 2, femaleAuthor: true });
+        this.scene.start('SceneScores', { chapter: 3, femaleAuthor: true });
       } else {
-        this.scene.start('SceneScores', { chapter: 2 });
+        this.scene.start('SceneScores', { chapter: 3 });
       }
     };
 

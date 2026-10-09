@@ -10,6 +10,7 @@ import SceneMainMenu from './Scenes/SceneMainMenu';
 import SceneScores from './Scenes/SceneScores';
 import SceneIntro from './Scenes/SceneIntro';
 import SceneGender from './Scenes/SceneGender';
+import SceneStories from './Scenes/SceneStories';
 
 // Стрелки и пробел не должны прокручивать страницу под игрой.
 window.addEventListener('keydown', (e) => {
@@ -53,6 +54,7 @@ class Game extends Phaser.Game {
     this.input.mouse.disableContextMenu();
     this.scene.add('SceneIntro', SceneIntro);
     this.scene.add('SceneGender', SceneGender);
+    this.scene.add('SceneStories', SceneStories);
     this.scene.add('SceneScores', SceneScores);
     this.scene.add('SceneMainMenu', SceneMainMenu);
     this.scene.add('SceneMain', SceneMain);

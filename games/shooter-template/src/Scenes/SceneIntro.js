@@ -59,7 +59,7 @@ export default class SceneIntro extends Phaser.Scene {
     btn.onclick = () => {
       // Тоже через выбор пола, если он ещё не сделан.
       if (!Storage.getAuthorGender()) this.scene.start('SceneGender');
-      else this.scene.start('SceneMain');
+      else this.scene.start('SceneStories', { round: 1 });
     };
   }
 }

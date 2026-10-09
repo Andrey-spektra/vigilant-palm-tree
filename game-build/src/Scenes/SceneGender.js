@@ -51,7 +51,7 @@ export default class SceneGender extends Phaser.Scene {
     title.setOrigin(0.5);
 
     const subtitle = this.add.text(this.game.config.width * 0.5, this.game.config.height * 0.16 + 52,
-      'Автор — мужчина или автор — женщина. Выбор действует в первом и втором томе.', {
+      'Автор — мужчина или автор — женщина. Выбор действует во всех трёх раундах.', {
         fontFamily: 'Arial, sans-serif',
         fontSize: '18px',
         color: '#cfd8e3',
@@ -108,7 +108,7 @@ export default class SceneGender extends Phaser.Scene {
 
     const choose = (gender) => {
       Storage.setAuthorGender(gender);
-      this.scene.start('SceneMain', { chapter: 1 });
+      this.scene.start('SceneStories', { round: 1 });
     };
 
     row.querySelector('#pickMale').onclick = () => choose('male');
