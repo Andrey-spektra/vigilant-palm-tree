@@ -41,6 +41,35 @@ export default class SceneMainMenu extends Phaser.Scene {
     const finish = Storage.isGameFinished();
     const playLabel = finish ? 'Переписать историю' : 'Влипнуть в историю';
 
+    // Визуальное вступление: небольшая подборка эпиграфов и мемо-историй
+    // поверх главного меню, чтобы игра открывалась уже как “сборник рассказов”.
+    const notes = document.createElement('div');
+    notes.innerHTML = `
+      <div style="
+        width: min(680px, 82vw);
+        background: rgba(12, 17, 28, 0.7);
+        border: 2px solid rgba(255,255,255,0.7);
+        border-radius: 12px;
+        padding: 18px 22px 16px;
+        box-sizing: border-box;
+        color: #fff;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+      ">
+        <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; opacity: 0.8; margin-bottom: 10px;">Сборник рассказов о писателе</div>
+        <div style="font-size: 18px; font-weight: bold; line-height: 1.35; margin-bottom: 12px;">
+          С чего начать этот сборник? Конечно, с мемо-рассказов про начинающего автора.
+        </div>
+        <div style="font-size: 15px; line-height: 1.5; opacity: 0.95;">
+          • Он работает грузчиком, чтобы привыкнуть носить груз гениальности.<br>
+          • Он запутался в своих чувствах и решил выплеснуть их на бумагу.<br>
+          • Главный принцип — не рассказывать, а показывать.<br>
+          • Страх белого листа — постоянный спутник его ночей.
+        </div>
+      </div>`;
+    this.notes = this.add.dom(this.game.config.width * 0.5, this.game.config.height * 0.26, notes, 'background-color: transparent; width: 680px; height: auto;');
+
     // Кнопка «Влипнуть в историю / Переписать историю» — системный шрифт, чтобы читалось у всех
     const play = document.createElement('div');
     play.innerHTML = `<button type='submit' id='play'

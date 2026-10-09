@@ -415,8 +415,6 @@ export class GunShip extends Entity {
   showHitPhrase() {
     const phrases = this.isFanEnemy ? [
       'Автор гений',
-    ] : this.isFemaleAuthor && this.chapter === 1 ? [
-      'Твое место на кухне',
     ] : [
       'Он чем-то зацепил меня, гад.',
       'Его слова ранят!',

@@ -55,7 +55,7 @@ export default class TouchControls {
       .setStrokeStyle(3, 0xffffff, 0.6)
       .setScrollFactor(0)
       .setDepth(9999);
-    this.fireLabel = scene.add.text(this.fireX, this.fireY, 'ОГОНЬ', {
+    this.fireLabel = scene.add.text(this.fireX, this.fireY, 'СЛОВО', {
       fontFamily: 'monospace',
       fontSize: '18px',
       fill: '#ffffff',
