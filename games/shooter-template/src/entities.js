@@ -310,7 +310,7 @@ export class ChaserShip extends Entity {
 }
 
 export class GunShip extends Entity {
-  constructor(scene, x, y, dir, chapter) {
+  constructor(scene, x, y, dir, chapter, authorGender = 'male') {
     // ВАЖНО: обращение к this возможно ТОЛЬКО после super().
     // (Раньше здесь до super стояло `this.isFanEnemy = ...`, что на
     // минифицированном коде вызывало TypeError и убивало спавн врагов.)
@@ -319,7 +319,9 @@ export class GunShip extends Entity {
     // женщина (sprFan). В главе 1 остаётся гопник.
     const enemyKey = fanEnemy ? 'sprFan' : 'sprEnemy0';
     super(scene, x, y, enemyKey, 'GunShip');
+    this.chapter = chapter;
     this.isFanEnemy = fanEnemy;
+    this.isFemaleAuthor = authorGender === 'female';
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
     try { this.play(enemyKey); } catch (e) { /* без анимации — статичный кадр */ }
 
@@ -330,6 +332,8 @@ export class GunShip extends Entity {
     // фраза при появлении (случайная из списка)
     const phrases = this.isFanEnemy ? [
       'Где моя прода?',
+    ] : this.isFemaleAuthor && chapter === 1 ? [
+      'Твое место на кухне',
     ] : [
       'Писатель? А я художник — дай рожу распишу.',
       'Чё, голодный? Давай, угощу люлями.',
@@ -411,6 +415,8 @@ export class GunShip extends Entity {
   showHitPhrase() {
     const phrases = this.isFanEnemy ? [
       'Автор гений',
+    ] : this.isFemaleAuthor && this.chapter === 1 ? [
+      'Твое место на кухне',
     ] : [
       'Он чем-то зацепил меня, гад.',
       'Его слова ранят!',

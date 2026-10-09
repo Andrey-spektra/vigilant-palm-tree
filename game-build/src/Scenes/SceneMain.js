@@ -201,7 +201,7 @@ export default class SceneMain extends Phaser.Scene {
         const dir = fromLeft ? 1 : -1;
         const x = fromLeft ? 0 : this.game.config.width;
         const y = Phaser.Math.Between(120, this.game.config.height - 120);
-        const enemy = new GunShip(this, x, y, dir, chapter);
+        const enemy = new GunShip(this, x, y, dir, chapter, authorGender);
         enemy.setScale(Phaser.Math.Between(10, 12) * 0.1);
         this.enemies.add(enemy);
       },
