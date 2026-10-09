@@ -1,20 +1,23 @@
 # Star Trooper
 A space shooter game made with Phaser 3, only takes a few seconds to start playing in your web browser, and share your score with your friends in an online leaderboard.
-## Instructions to run the project
+## Build for browser offline usage
 
 + Open terminal on your workspace with
 ```
-cd /home/projects_workspace/..
+cd /path/to/project/
 ```
-+ Cloning the project input the next code:
++ Install dependencies:
 ```
-git clone git@github.com:idgm5/shootergame.git
+npm install
 ```
-+ Navigate to the folder of the project
++ Build the final bundle and generate the offline HTML file:
 ```
-cd /shootergame/
+npm run offline
 ```
-Run  `npm install` and then `npm run start` finally open your web browser at `http://localhost:8000/`
++ Open the generated file in a browser:
+```
+./СИЛА_СЛОВА_игра.html
+```
 
 ## Quick starting Guide
 + MOVE UP: Press [W] key

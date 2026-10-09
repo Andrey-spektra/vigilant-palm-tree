@@ -1,2 +1,3 @@
 # Build artifacts
-game-build/build/
+**/build/
+**/node_modules/
