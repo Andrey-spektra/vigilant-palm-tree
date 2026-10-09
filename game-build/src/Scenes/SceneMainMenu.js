@@ -28,6 +28,13 @@ export default class SceneMainMenu extends Phaser.Scene {
       .forEach((el) => el.remove());
     document.querySelectorAll('.game-dom-modal').forEach((el) => el.remove());
 
+    const clearMenuElements = () => {
+      document.querySelectorAll('#button, #play, #gender, #hint, #pickMale, #pickFemale')
+        .forEach((el) => el.remove());
+      document.querySelectorAll('.game-dom-modal').forEach((el) => el.remove());
+    };
+    this.events.once('shutdown', clearMenuElements);
+
     this.bg = this.add.image(512, 320, 'cover');
     this.bg.setDisplaySize(this.game.config.width, this.game.config.height);
 
@@ -130,13 +137,17 @@ export default class SceneMainMenu extends Phaser.Scene {
 
     playBtn.onclick = () => {
       // Если пол ещё не выбран — сначала сцена выбора персонажа.
+      clearMenuElements();
       if (!Storage.getAuthorGender()) {
         this.scene.start('SceneGender');
       } else {
-        this.scene.start('SceneMain');
+        this.scene.start('SceneMain', { chapter: 1 });
       }
     };
-    genderBtn.onclick = () => this.scene.start('SceneGender');
+    genderBtn.onclick = () => {
+      clearMenuElements();
+      this.scene.start('SceneGender');
+    };
     hintBtn.onclick = () => { this.modal.style.display = 'block'; };
     closeBtn.onclick = () => { this.modal.style.display = 'none'; };
     overlay.onclick = (e) => { if (e.target === overlay) this.modal.style.display = 'none'; };
