@@ -53,7 +53,10 @@ export default class SceneMain extends Phaser.Scene {
       return;
     }
     authorGender = g;
-    if (chapter === 1) score = 0; // новый запуск; глава 2 продолжает счёт
+    if (chapter === 1) {
+      score = 0;
+      Storage.setGameFinished(false);
+    }
     Storage.currentScore(score);
     Storage.setAmmo(ammunition);
 
