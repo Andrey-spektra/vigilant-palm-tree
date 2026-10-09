@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Сборка офлайн-версий игры «Сила слова».
+"""Сборка единственной актуальной запускающей версии игры.
 
-1) СИЛА_СЛОВА_игра.html — один файл: Phaser + код игры + base64 манифест ассетов.
-   (Раньше скрипт подменял строки 'assets/...' внутри бандля на гигантские
-   data-URI прямо в коде — это ломало сборку и тормозило парсер браузера.)
-2) сила_слова_оффлайн/index.html — папка с обычными путями к assets/.
-
-Запускать после npm run build (или python build_game.py).
+В репозитории оставляем только один запускной файл: game.html.
+Скрипт собирает именно его и не создаёт побочные офлайн-артефакты.
 """
 import base64
 import json
 import os
-import shutil
 
 root = os.path.dirname(os.path.abspath(__file__))
+repo_root = os.path.dirname(root)
 bundle_path = os.path.join(root, "build", "project.bundle.js")
 js = open(bundle_path, encoding="utf-8").read()
 
@@ -65,15 +61,6 @@ head = (
 tail = '\n    </body>\n</html>\n'
 
 html = head + pre + '\n<script charset="utf-8">\n' + js + '\n</script>\n' + tail
-out = os.path.join(root, "СИЛА_СЛОВА_игра.html")
+out = os.path.join(repo_root, "game.html")
 open(out, "w", encoding="utf-8").write(html)
 print("WROTE", out, len(html) // 1024, "KB")
-
-# --- лёгкая офлайн-папка -----------------------------------------------------
-outdir = os.path.join(root, "сила_слова_оффлайн")
-shutil.rmtree(outdir, ignore_errors=True)
-os.makedirs(outdir)
-shutil.copytree(os.path.join(root, "assets"), os.path.join(outdir, "assets"))
-html2 = head + '\n<script charset="utf-8">\n' + js + '\n</script>\n' + tail
-open(os.path.join(outdir, "index.html"), "w", encoding="utf-8").write(html2)
-print("WROTE", outdir)
