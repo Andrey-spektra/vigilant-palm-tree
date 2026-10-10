@@ -20,25 +20,27 @@ export default class SceneScores extends Phaser.Scene {
     });
     const chapter = (data && data.chapter) || 1;
     const showEpilogue = Boolean(data && data.showEpilogue);
-    // Автор — женщина: её спрайт на экране итогов вместо поклонницы.
     const femaleAuthor = Boolean(data && data.femaleAuthor);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.W);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.S);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.A);
     this.input.keyboard.removeCapture(Phaser.Input.Keyboard.KeyCodes.D);
 
-    // фон — город, справа — гопник (глава 1) или поклонница (глава 2), читающий книгу
+    // Фон — город, справа показан противник из завершённой главы.
     this.bg = this.add.image(512, 320, 'deepspace');
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
     if (chapter === 2) {
-      if (femaleAuthor) {
-        // Автор-женщина: показываем её саму (кадр спрайт-листа писательницы).
-        this.fan = this.add.sprite(this.game.config.width * 0.85, this.game.config.height * 0.62, 'sprPlayerFemale', 0);
-      } else {
-        this.fan = this.add.image(this.game.config.width * 0.85, this.game.config.height * 0.62, 'score-fan');
-      }
-      this.fan.setScale(0.9);
+      this.fan = this.add.sprite(
+        this.game.config.width * 0.85,
+        this.game.config.height * 0.62,
+        femaleAuthor ? 'sprFan' : 'sprFanFemale',
+        0,
+      );
+      this.fan.setScale(femaleAuthor ? 0.14 : 0.9);
+    } else if (chapter === 3) {
+      this.critic = this.add.sprite(this.game.config.width * 0.85, this.game.config.height * 0.62, 'sprCritic', 0);
+      this.critic.setScale(0.14);
     } else {
       this.gopnik = this.add.image(this.game.config.width * 0.85, this.game.config.height * 0.62, 'score-gopnik');
       this.gopnik.setScale(0.38);

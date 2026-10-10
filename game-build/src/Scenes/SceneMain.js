@@ -28,7 +28,7 @@ const zero = 0;
 let sec = 0;
 // Слова бесконечны в обеих главах.
 const ammunition = Infinity;
-// Текущая глава: 1 — Писатель, 2 — Поклонница (стреляет «Ещё»).
+// Текущая глава: 1 — Писатель, 2 — Поклонник (стреляет «Ещё»).
 let chapter = 1;
 // Пол автора-персонажа, выбранный в начале игры: 'male' | 'female'.
 let authorGender = 'male';
@@ -63,9 +63,14 @@ export default class SceneMain extends Phaser.Scene {
     this.bg = this.add.image(512, 320, 'deepspace');
     this.bg.setScale(Math.max(this.game.config.width / this.bg.width, this.game.config.height / this.bg.height));
 
-    const stageLabel = chapter === 2
-      ? 'Раунд 2 — поклонница говорит «Ещё»'
-      : `Раунд ${chapter} из 3 — ${chapter === 1 ? 'начинающий автор' : 'новая глава'}`;
+    let stageLabel;
+    if (chapter === 2) {
+      stageLabel = 'Раунд 2 — поклонник';
+    } else if (chapter === 3) {
+      stageLabel = 'Раунд 3 — критик';
+    } else {
+      stageLabel = 'Раунд 1 — начинающий автор';
+    }
     stageText = this.add.text(250, 16, stageLabel, {
         fontSize: '32px',
         fill: '#fff',
@@ -108,16 +113,18 @@ export default class SceneMain extends Phaser.Scene {
     };
 
     safeAnim('sprEnemy0', 6, -1);
+    safeAnim('sprCritic', 6, -1);
     safeAnim('sprExplosion', 20, 0);
     safeAnim('sprPlayer', 6, -1);
     // Анимация писательницы — женский вариант героя (выбор игрока в начале игры).
     safeAnim('sprPlayerFemale', 6, -1);
-    // Анимация поклонницы (ВРАГ главы 2).
+    // Анимация поклонника (враг второй главы).
     safeAnim('sprFan', 6, -1);
+    safeAnim('sprFanFemale', 6, -1);
 
     // Спрайт автора зависит от выбора пола в начале игры и НЕ меняется
     // между главами: в главе 2 герой остаётся тем же писателем/писательницей.
-    // Поклонница (sprFan) — это ВРАГ главы 2, а не герой.
+    // Поклонник (sprFan) — враг второй главы.
     const authorKey = authorGender === 'female' ? 'sprPlayerFemale' : 'sprPlayer';
     this.player = new Player(
           this,
@@ -198,13 +205,15 @@ export default class SceneMain extends Phaser.Scene {
     this.time.addEvent({
       delay: 2500,
       callback() {
-        // гопник появляется у левого или правого края и идёт вбок
+        // персонаж-противник появляется у края и идёт вбок
         const fromLeft = Phaser.Math.Between(0, 1) === 0;
         const dir = fromLeft ? 1 : -1;
         const x = fromLeft ? 0 : this.game.config.width;
         const y = Phaser.Math.Between(120, this.game.config.height - 120);
         const enemy = new GunShip(this, x, y, dir, chapter, authorGender);
-        enemy.setScale(Phaser.Math.Between(10, 12) * 0.1);
+        enemy.setScale(chapter === 1
+          ? Phaser.Math.Between(10, 12) * 0.1
+          : Phaser.Math.Between(13, 15) * 0.01);
         this.enemies.add(enemy);
       },
       callbackScope: this,
@@ -212,10 +221,16 @@ export default class SceneMain extends Phaser.Scene {
     });
 
     this.physics.add.collider(this.playerLasers, this.enemies, (playerLaser, enemy) => {
-      if (enemy) {
-        if (enemy.die !== undefined) {
-          enemy.die(); // замирает, фраза, затем исчезает
-        } else if (enemy.onDestroy !== undefined) {
+      if (enemy && enemy.takeHit !== undefined) {
+        if (enemy.takeHit()) {
+          playerLaser.destroy();
+          score += 1;
+          Storage.currentScore(score);
+        } else {
+          playerLaser.destroy();
+        }
+      } else if (enemy) {
+        if (enemy.onDestroy !== undefined) {
           enemy.onDestroy();
           enemy.explode(true);
         }

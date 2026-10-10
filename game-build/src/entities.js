@@ -51,7 +51,7 @@ export class Entity extends Phaser.GameObjects.Sprite {
 export class Player extends Entity {
   constructor(scene, x, y, key) {
     super(scene, x, y, key || 'sprPlayer', 'Player');
-    // Глава 2: поклонница (sprFan) — тот же герой, другой спрайт и оружие «Ещё».
+    // Поклонник (sprFan) стреляет во второй главе словом «Ещё».
     this.isFan = (key === 'sprFan');
     // Пол автора (глава 1): писатель или писательница — выбор игрока в начале игры.
     this.isFemaleAuthor = (key === 'sprPlayerFemale');
@@ -247,7 +247,7 @@ export class PlayerLaser extends Entity {
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
     this.body.velocity.x = d * 200; // летит строго вбок — в сторону, куда смотрит игрок
     this.body.velocity.y = 0;
-    // «Ещё» (поклонница) показываем без тонировки — слово уже нарисовано белым;
+    // «Ещё» (поклонника) показываем без тонировки — слово уже нарисовано белым;
     // обычные слова автора тонируем голубым.
     if ((key || 'sprWord') !== 'sprEsho') this.setTint(0x9fd8ff);
   }
@@ -315,12 +315,16 @@ export class GunShip extends Entity {
     // (Раньше здесь до super стояло `this.isFanEnemy = ...`, что на
     // минифицированном коде вызывало TypeError и убивало спавн врагов.)
     const fanEnemy = chapter === 2;
-    // Глава 2: вместо гопника (sprEnemy0) врагом становится поклонница —
-    // женщина (sprFan). В главе 1 остаётся гопник.
-    const enemyKey = fanEnemy ? 'sprFan' : 'sprEnemy0';
+    const criticEnemy = chapter === 3;
+    let enemyKey = 'sprEnemy0';
+    if (fanEnemy) enemyKey = authorGender === 'female' ? 'sprFan' : 'sprFanFemale';
+    else if (criticEnemy) enemyKey = 'sprCritic';
     super(scene, x, y, enemyKey, 'GunShip');
     this.chapter = chapter;
     this.isFanEnemy = fanEnemy;
+    this.isMaleFan = fanEnemy && authorGender === 'female';
+    this.isCriticEnemy = criticEnemy;
+    this.setData('hitsTaken', 0);
     this.isFemaleAuthor = authorGender === 'female';
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
     try { this.play(enemyKey); } catch (e) { /* без анимации — статичный кадр */ }
@@ -330,21 +334,28 @@ export class GunShip extends Entity {
     this.body.velocity.x = this.dir * Phaser.Math.Between(40, 70); // идёт вбок
 
     // фраза при появлении (случайная из списка)
-    const phrases = this.isFanEnemy ? [
-      'Где моя прода?',
-    ] : this.isFemaleAuthor && chapter === 1 ? [
-      'Твое место на кухне',
-    ] : [
-      'Писатель? А я художник — дай рожу распишу.',
-      'Чё, голодный? Давай, угощу люлями.',
-      'Чё лыбу тянешь? Ща ноги протянешь.',
-      'Улица, фонарь под глазом — и в аптеку.',
-      'Лютого знаешь? Это я лютый.',
-      'Ты не догоняешь? Так я тебя ногой догоню.',
-      'Фантаст? Так ща улетишь в другие миры.',
-      'Страдаешь? Ща будешь пострадавшим.',
-      'Ты на голой вечеринке — отдавай всё мне.',
-    ];
+    let phrases;
+    if (this.isFanEnemy) {
+      phrases = this.isMaleFan
+        ? ['Дай припасть к первоисточнику']
+        : ['Где моя прода?'];
+    } else if (this.isCriticEnemy) {
+      phrases = ['В вашем сюжете сплошные дыры'];
+    } else if (this.isFemaleAuthor && chapter === 1) {
+      phrases = ['Твое место на кухне'];
+    } else {
+      phrases = [
+        'Писатель? А я художник — дай рожу распишу.',
+        'Чё, голодный? Давай, угощу люлями.',
+        'Чё лыбу тянешь? Ща ноги протянешь.',
+        'Улица, фонарь под глазом — и в аптеку.',
+        'Лютого знаешь? Это я лютый.',
+        'Ты не догоняешь? Так я тебя ногой догоню.',
+        'Фантаст? Так ща улетишь в другие миры.',
+        'Страдаешь? Ща будешь пострадавшим.',
+        'Ты на голой вечеринке — отдавай всё мне.',
+      ];
+    }
     const phrase = phrases[Phaser.Math.Between(0, phrases.length - 1)];
     // смещение подписи в сторону игрока, чтобы не резалась у края экрана
     this.speechOffset = this.dir * 130;
@@ -412,7 +423,7 @@ export class GunShip extends Entity {
   }
 
   // фраза, когда гопник получил урон (случайная из списка)
-  showHitPhrase() {
+  showHitPhrase(customPhrase) {
     const phrases = this.isFanEnemy ? [
       'Автор гений',
     ] : [
@@ -430,7 +441,7 @@ export class GunShip extends Entity {
       'Подпишусь на автора!',
       'Лайк и респект автору!',
     ];
-    const phrase = phrases[Phaser.Math.Between(0, phrases.length - 1)];
+    const phrase = customPhrase || phrases[Phaser.Math.Between(0, phrases.length - 1)];
     // приоритет: реплика попадания убирает реплику появления, чтобы не наслаивались
     if (this.speech) {
       this.speech.destroy();
@@ -461,7 +472,18 @@ export class GunShip extends Entity {
   }
 
   // смерть гопника: замирает на одном кадре, произносит фразу, затем исчезает
-  die() {
+  takeHit() {
+    if (this.getData('dying') || this.getData('isDead')) return false;
+    if (this.isCriticEnemy && this.getData('hitsTaken') === 0) {
+      this.setData('hitsTaken', 1);
+      this.showHitPhrase('Вот это поворот');
+      return true;
+    }
+    this.die(this.isCriticEnemy ? 'Это новое слово в литературе' : undefined);
+    return true;
+  }
+
+  die(finalPhrase) {
     if (this.getData('dying')) return;
     this.setData('dying', true);
     this.body.setVelocity(0, 0); // замирает
@@ -470,7 +492,7 @@ export class GunShip extends Entity {
       this.shootTimer.remove(false);
       this.shootTimer = null;
     }
-    this.showHitPhrase(); // произносит фразу
+    this.showHitPhrase(finalPhrase); // произносит фразу
     this.scene.time.delayedCall(900, () => {
       if (!this.active) return;
       this.explode(true); // устанавливает isDead и запускает анимацию исчезновения
