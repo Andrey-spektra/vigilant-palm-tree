@@ -331,7 +331,8 @@ export class GunShip extends Entity {
 
     this.setFlipX(d < 0);
     this.dir = d;
-    this.body.velocity.x = this.dir * Phaser.Math.Between(40, 70); // идёт вбок
+    this.moveSpeed = Phaser.Math.Between(40, 70);
+    this.body.velocity.x = this.dir * this.moveSpeed; // идёт вбок
 
     // фраза при появлении (случайная из списка)
     let phrases;
@@ -504,6 +505,7 @@ export class GunShip extends Entity {
     if (this.getData('dying') || this.getData('isDead')) return false;
     if (this.isCriticEnemy && this.getData('hitsTaken') === 0) {
       this.setData('hitsTaken', 1);
+      this.body.setVelocityX(this.dir * this.moveSpeed * 1.25);
       this.showHitPhrase('Вот это поворот');
       return true;
     }
