@@ -62,14 +62,12 @@ export default class TouchControls {
       fontStyle: 'bold',
     }).setOrigin(0.5).setScrollFactor(0).setDepth(10000);
 
-    // Надёжное определение тач-режима: раньше использовался только
-    // device.input.touch (максимум 1 касание). На планшетах, устройствах со
-    // стилусом и в некоторых браузерах он возвращает false — тогда включался
-    // «мышинный» режим: джойстик реагировал на любой pointer, а сцены стреляли
-    // по клику. Теперь: touch >= 2 ИЛИ PointerEvent.MOVE_TYPE_TOUCH, либо
-    // любое реальное касание подтверждает тач-режим (флаг window, общий для всех сцен).
-    const devTouch = !!(scene.sys.game.device && scene.sys.game.device.input
-      && scene.sys.game.device.input.multiTouch);
+    // Учитываем и одно касание: на некоторых планшетах multiTouch и PointerEvent
+    // недоступны, из-за чего контролы прежде показывались только после первого касания.
+    const deviceInput = scene.sys.game.device && scene.sys.game.device.input;
+    const devTouch = !!(deviceInput && (deviceInput.touch || deviceInput.multiTouch))
+      || (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
+      || (typeof window !== 'undefined' && 'ontouchstart' in window);
     let moveTypeTouch = false;
     try {
       moveTypeTouch = typeof PointerEvent !== 'undefined'

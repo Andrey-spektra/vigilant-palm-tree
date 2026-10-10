@@ -97,23 +97,17 @@ export default class SceneStories extends Phaser.Scene {
         <div style="
           flex: 1 1 auto;
           min-height: 0;
-          position: relative;
-          overflow: hidden;
-          touch-action: none;">
-          <div id="story-scroll-content" style="
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            will-change: transform;">
-            <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.8;margin-bottom:10px;">
-              Сборник рассказов о начинающем авторе · часть ${round} из ${stories.length}
-            </div>
-            <h1 style="font-size:30px;line-height:1.2;margin:0 0 22px;">${story.title}</h1>
-            ${story.intro ? `<p style="font-size:18px;line-height:1.55;margin:0 0 22px;">${story.intro}</p>` : ''}
-            <div style="font-size:18px;line-height:1.55;text-align:left;">
-              ${story.entries.map((entry) => `<p style="margin:0 0 14px;">${entry}</p>`).join('')}
-            </div>
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;">
+          <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;opacity:0.8;margin-bottom:10px;">
+            Сборник рассказов о начинающем авторе · часть ${round} из ${stories.length}
+          </div>
+          <h1 style="font-size:30px;line-height:1.2;margin:0 0 22px;">${story.title}</h1>
+          ${story.intro ? `<p style="font-size:18px;line-height:1.55;margin:0 0 22px;">${story.intro}</p>` : ''}
+          <div style="font-size:18px;line-height:1.55;text-align:left;">
+            ${story.entries.map((entry) => `<p style="margin:0 0 14px;">${entry}</p>`).join('')}
           </div>
         </div>
         <button id="skip-stories" type="button" style="
@@ -134,60 +128,9 @@ export default class SceneStories extends Phaser.Scene {
     this.add.dom(this.game.config.width * 0.5, this.game.config.height * 0.5, screen,
       'background-color: transparent; width: 780px; max-width: 90vw; height: min(82vh, 520px);');
 
-    const storyViewport = screen.querySelector('#story-screen > section > div');
-    const storyContent = screen.querySelector('#story-scroll-content');
-    let scrollOffset = 0;
-    const setScrollOffset = (offset) => {
-      const maxOffset = Math.max(0, storyContent.offsetHeight - storyViewport.clientHeight);
-      scrollOffset = Phaser.Math.Clamp(offset, 0, maxOffset);
-      storyContent.style.transform = `translate3d(0, ${-scrollOffset}px, 0)`;
-    };
-
-    storyViewport.addEventListener('wheel', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      setScrollOffset(scrollOffset + event.deltaY);
-    }, { passive: false });
-
-    let activeTouchId = null;
-    let touchStartY = 0;
-    let touchStartOffset = 0;
-    storyViewport.addEventListener('touchstart', (event) => {
-      if (activeTouchId !== null || event.changedTouches.length === 0) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      const touch = event.changedTouches[0];
-      activeTouchId = touch.identifier;
-      touchStartY = touch.clientY;
-      touchStartOffset = scrollOffset;
-    }, { passive: false });
-    storyViewport.addEventListener('touchmove', (event) => {
-      let touch = null;
-      for (let index = 0; index < event.touches.length; index += 1) {
-        if (event.touches[index].identifier === activeTouchId) {
-          touch = event.touches[index];
-          break;
-        }
-      }
-      if (!touch) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-      setScrollOffset(touchStartOffset + touchStartY - touch.clientY);
-    }, { passive: false });
-    const stopTouchScroll = (event) => {
-      let touchEnded = false;
-      for (let index = 0; index < event.changedTouches.length; index += 1) {
-        if (event.changedTouches[index].identifier === activeTouchId) {
-          touchEnded = true;
-          break;
-        }
-      }
-      if (touchEnded) activeTouchId = null;
-    };
-    storyViewport.addEventListener('touchend', stopTouchScroll, { passive: false });
-    storyViewport.addEventListener('touchcancel', stopTouchScroll, { passive: false });
+    screen.querySelector('#story-screen > section > div').addEventListener('wheel', (event) => {
+      event.stopImmediatePropagation();
+    });
 
     screen.querySelector('#skip-stories').onclick = () => {
       this.scene.start('SceneMain', { chapter: round });
