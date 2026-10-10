@@ -83,7 +83,7 @@ export default class SceneScores extends Phaser.Scene {
       this.add.text(
         this.game.config.width * 0.38,
         307,
-        'Однажды он прочитал, что самое прекрасное — это невысказанное, то, чего нельзя описать словами.\n\nПосле этого понял, что пишет великолепно.',
+        'Однажды он прочитал, что самое прекрасное — это невысказанное, то, чего нельзя описать словами.\n\nПосле этого понял, что пишет великолепно.\nА молчит вообще чудесно.',
         {
           fontFamily: 'Arial, sans-serif',
           fontSize: 16,
@@ -98,6 +98,20 @@ export default class SceneScores extends Phaser.Scene {
         fontSize: 16,
         color: '#ffffff',
       }).setOrigin(0, 0.5);
+
+      const noteX = this.game.config.width * 0.38;
+      const noteY = 455;
+      const noteStyle = { fontFamily: 'Arial, sans-serif', fontSize: 15, color: '#ffffff' };
+      const note = this.add.text(noteX, noteY, 'Связаться со мной или почитать можно ', noteStyle);
+      note.setOrigin(0, 0.5);
+      const link = this.add.text(noteX + note.width, noteY, 'ТУТ', {
+        ...noteStyle,
+        color: '#65cfff',
+        fontStyle: 'bold',
+      }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+      link.on('pointerdown', () => {
+        window.open('https://author.today/u/andrej_schitikow', '_blank', 'noopener,noreferrer');
+      });
     }
 
     const div = document.createElement('div');
@@ -113,7 +127,8 @@ export default class SceneScores extends Phaser.Scene {
     font-size: 18px;
     cursor: pointer;'>
     В меню</button>`;
-    this.add.dom(this.game.config.width * 0.38, this.game.config.height * 0.75, div, 'background-color: transparent; width: 220px; height: 0;');
+    const menuButtonY = this.game.config.height * (showEpilogue ? 0.85 : 0.75);
+    this.add.dom(this.game.config.width * 0.38, menuButtonY, div, 'background-color: transparent; width: 220px; height: 0;');
 
     const btn = document.getElementById('button');
     btn.onclick = () => {

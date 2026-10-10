@@ -9,6 +9,27 @@
 let ammunition = Infinity;
 const Storage = require('./modules/storage');
 
+function getEnemyProjectileTexture(scene, type) {
+  if (type === 'mat') return 'sprMat';
+
+  const textureKey = `enemyProjectile-${type}`;
+  if (!scene.textures.exists(textureKey)) {
+    const label = type === 'tears' ? 'СЛЁЗЫ' : 'ХЕЙТ';
+    const texture = scene.textures.createCanvas(textureKey, 140, 48);
+    const context = texture.getContext();
+    context.font = 'bold 28px Arial, sans-serif';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.lineWidth = 4;
+    context.strokeStyle = '#000000';
+    context.fillStyle = type === 'tears' ? '#65cfff' : '#ff5252';
+    context.strokeText(label, 70, 24);
+    context.fillText(label, 70, 24);
+    texture.refresh();
+  }
+  return textureKey;
+}
+
 export class Entity extends Phaser.GameObjects.Sprite {
   constructor(scene, x, y, key, type) {
     super(scene, x, y, key);
@@ -254,12 +275,12 @@ export class PlayerLaser extends Entity {
 }
 
 export class EnemyLaser extends Entity {
-  constructor(scene, x, y, dir) {
-    super(scene, x, y, 'sprMat');
+  constructor(scene, x, y, dir, type = 'mat') {
+    super(scene, x, y, getEnemyProjectileTexture(scene, type));
     const d = dir === 0 || dir === undefined || dir === null ? 1 : dir;
     this.body.velocity.x = d * 200; // летит строго вбок — в сторону, куда смотрит гопник
     this.body.velocity.y = 0;
-    this.setTint(0xffc766); // цвет мата — как у реплик гопника
+    if (type === 'mat') this.setTint(0xffc766); // цвет мата — как у реплик гопника
   }
 }
 
@@ -431,6 +452,7 @@ export class GunShip extends Entity {
           muzzleX,
           muzzleY,
           this.dir,
+          this.chapter === 2 ? 'tears' : (this.chapter === 3 ? 'hate' : 'mat'),
         );
         laser.setScale(Math.max(this.scaleX, 1) * 0.7);
         this.scene.enemyLasers.add(laser);
