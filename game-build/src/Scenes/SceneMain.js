@@ -211,9 +211,11 @@ export default class SceneMain extends Phaser.Scene {
         const x = fromLeft ? 0 : this.game.config.width;
         const y = Phaser.Math.Between(120, this.game.config.height - 120);
         const enemy = new GunShip(this, x, y, dir, chapter, authorGender);
-        enemy.setScale(chapter === 1
-          ? Phaser.Math.Between(10, 12) * 0.1
-          : Phaser.Math.Between(13, 15) * 0.01);
+        if (chapter === 1 || (chapter === 2 && authorGender === 'male')) {
+          enemy.setScale(Phaser.Math.Between(10, 12) * 0.1);
+        } else {
+          enemy.setScale(Phaser.Math.Between(13, 15) * 0.01);
+        }
         this.enemies.add(enemy);
       },
       callbackScope: this,

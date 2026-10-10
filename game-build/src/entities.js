@@ -403,7 +403,7 @@ export class GunShip extends Entity {
           muzzleY,
           this.dir,
         );
-        laser.setScale(this.scaleX * 0.7);
+        laser.setScale(Math.max(this.scaleX, 1) * 0.7);
         this.scene.enemyLasers.add(laser);
       },
       callbackScope: this,
