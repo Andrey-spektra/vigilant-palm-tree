@@ -65,11 +65,11 @@ export default class SceneMain extends Phaser.Scene {
 
     let stageLabel;
     if (chapter === 2) {
-      stageLabel = 'Раунд 2 — поклонник';
+      stageLabel = 'Глава 2. Поклонение';
     } else if (chapter === 3) {
-      stageLabel = 'Раунд 3 — критик';
+      stageLabel = 'Глава 3. Признание';
     } else {
-      stageLabel = 'Раунд 1 — начинающий автор';
+      stageLabel = 'Глава 1. Гопник';
     }
     stageText = this.add.text(250, 16, stageLabel, {
         fontSize: '32px',

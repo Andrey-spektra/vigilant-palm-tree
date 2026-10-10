@@ -41,7 +41,7 @@ export default class SceneGender extends Phaser.Scene {
     this.bg.setAlpha(0.45);
 
     const title = this.add.text(this.game.config.width * 0.5, this.game.config.height * 0.16,
-      'Выберите пол персонажа', {
+      'Выбери пол персонажа', {
         fontFamily: 'Arial, sans-serif',
         fontSize: '40px',
         fontStyle: 'bold',
@@ -49,16 +49,6 @@ export default class SceneGender extends Phaser.Scene {
         align: 'center',
       });
     title.setOrigin(0.5);
-
-    const subtitle = this.add.text(this.game.config.width * 0.5, this.game.config.height * 0.16 + 52,
-      'Автор — мужчина или автор — женщина. Выбор действует во всех трёх раундах.', {
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '18px',
-        color: '#cfd8e3',
-        align: 'center',
-      });
-    subtitle.setOrigin(0.5);
-    subtitle.setWordWrapWidth(this.game.config.width * 0.8, true);
 
     // Превью спрайтов: слева — писатель (sprPlayer), справа — писательница (sprPlayerFemale).
     const previewY = this.game.config.height * 0.42;

@@ -338,6 +338,7 @@ export class GunShip extends Entity {
     let phrases;
     if (this.isFanEnemy) {
       phrases = [
+        'Где моя прода?!',
         'Я хочу задушить вас в объятиях!',
         'Но где же продолжение рассказов?',
         'Она не пишет обо мне.',

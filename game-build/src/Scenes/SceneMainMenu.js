@@ -58,7 +58,7 @@ export default class SceneMainMenu extends Phaser.Scene {
     ${playLabel}</button>`;
     this.play = this.add.dom(this.game.config.width * 0.5, this.game.config.height * 0.72, play, 'background-color: transparent; width: 260px; height: 0;');
 
-    // Кнопка «Выбор героя» — перед игрой можно сменить пол персонажа (автор — мужчина/женщина).
+    // Кнопка выбора пола персонажа.
     const gender = document.createElement('div');
     gender.innerHTML = `<button type='button' id='gender'
     style='background-color: rgba(12, 17, 28, 0.92);
@@ -71,7 +71,7 @@ export default class SceneMainMenu extends Phaser.Scene {
     font-weight: bold;
     font-size: 15px;
     cursor: pointer;'>
-    Выбор героя</button>`;
+    Выбор персонажа</button>`;
     this.gender = this.add.dom(this.game.config.width * 0.5, this.game.config.height * 0.60, gender, 'background-color: transparent; width: 200px; height: 0;');
 
     // Кнопка «Подсказка» — открывает окно с приветствием и управлением
@@ -111,8 +111,9 @@ export default class SceneMainMenu extends Phaser.Scene {
           </p>
           <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.5;">
             <b>Управление:</b><br>
-            На клавиатуре — [W][A][S][D] ходьба, [ПРОБЕЛ] — слово.<br>
-            На телефоне — джойстик слева, пламенная речь справа.
+            Клавиатура: WASD или стрелки — движение, пробел — слово.<br>
+            Мышь: левая или правая кнопка — слово.<br>
+            Сенсорный экран: джойстик слева — движение, кнопка «СЛОВО» справа — выстрел.
           </p>
           <div style="text-align:center;">
             <button id="hintClose" style="
